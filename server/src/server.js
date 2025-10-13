@@ -35,10 +35,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // CORS middleware
+const allowedOrigins = [
+    'http://localhost:5173', // Vite dev server
+    'http://localhost:3000', // Alternative dev port
+    'https://household-budget-client.vercel.app', // Production client
+    'https://household-budget-client-git-main-rafaelgenish111s-projects.vercel.app' // Vercel preview
+];
+
 app.use(
     cors({
-        origin: config.nodeEnv === 'development' ? true : process.env.CLIENT_URL, // מאפשר גישה מכל מקור ב-development
+        origin: function (origin, callback) {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+            
+            if (allowedOrigins.indexOf(origin) !== -1) {
+                callback(null, true);
+            } else {
+                console.log('🚫 CORS blocked origin:', origin);
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
     })
 );
 
