@@ -171,24 +171,90 @@ function extractDate(text) {
 }
 
 function extractTotal(text) {
-    const patterns = [
-        /(?:סה["']כ|סך הכל|סכום לתשלום|total|לתשלום|סופי)[\s:]*([0-9,]+\.?\d{0,2})/gi,
-    ];
+    const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.replace(/[₪\s]+/g, ' ').trim())
+        .filter(Boolean);
 
-    for (const pattern of patterns) {
-        const matches = [...text.matchAll(pattern)];
-        if (matches.length > 0) {
-            const amounts = matches.map((m) => parseFloat(m[1].replace(',', '')));
-            return Math.max(...amounts);
+    const parseAmounts = (s) =>
+        (s.match(/\d{1,3}(?:[\,']\d{3})*\.?\d{2}|\d+\.\d{2}/g) || [])
+            .map((x) => parseFloat(x.replace(/[,']/g, '')))
+            .filter((n) => !isNaN(n));
+
+    const totalKeywords = [
+        'סה"כ לתשלום',
+        'סה\"כ לתשלום',
+        'סכום לתשלום',
+        'לתשלום',
+        'סכום סופי',
+        'total',
+        'grand total',
+        'balance due',
+    ];
+    const paidKeywords = ['שולם', 'מזומן', 'אשראי', 'כרטיס', 'שילם', 'paid', 'cash', 'credit'];
+    const changeKeywords = ['עודף', 'החזר', 'change'];
+
+    let candidateTotal = null;
+    let paidMax = null;
+    let changeAmt = null;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].toLowerCase();
+        const amountsHere = parseAmounts(lines[i]);
+
+        // total by keywords (prefer last occurrence)
+        if (totalKeywords.some((k) => line.includes(k))) {
+            let amt = amountsHere.length > 0 ? amountsHere[amountsHere.length - 1] : null;
+            if (amt == null && i + 1 < lines.length) {
+                const nextAmts = parseAmounts(lines[i + 1]);
+                if (nextAmts.length > 0) amt = nextAmts[nextAmts.length - 1];
+            }
+            if (amt != null) candidateTotal = amt; // keep last seen
+        }
+
+        // paid amount
+        if (paidKeywords.some((k) => line.includes(k))) {
+            const localMax = amountsHere.length > 0 ? Math.max(...amountsHere) : null;
+            if (localMax != null) paidMax = paidMax == null ? localMax : Math.max(paidMax, localMax);
+        }
+
+        // change amount (עודף)
+        if (changeKeywords.some((k) => line.includes(k))) {
+            const localMax = amountsHere.length > 0 ? Math.max(...amountsHere) : null;
+            if (localMax != null) changeAmt = localMax;
         }
     }
 
-    const numbers = text.match(/\d+\.\d{2}/g) || [];
-    if (numbers.length > 0) {
-        return Math.max(...numbers.map((n) => parseFloat(n)));
+    // אם זוהה סכום לתשלום מפורש – החזר אותו, ובמידה ויש סכום שולם גדול ממנו, אשר אותו
+    if (candidateTotal != null) {
+        if (paidMax != null && candidateTotal > paidMax) {
+            // OCR טעה – קח את המינימום ביניהם
+            return Math.min(candidateTotal, paidMax);
+        }
+        return candidateTotal;
+    }
+
+    // אם אין total מפורש אבל יש שולם ועודף – חשב total = paid - change
+    if (paidMax != null && changeAmt != null) {
+        const computed = paidMax - changeAmt;
+        if (computed > 0) return round2(computed);
+    }
+
+    // fallback: אם יש כמה סכומים – קח את הגדול ביותר שקטן או שווה לסכום ששולם
+    const allAmounts = parseAmounts(text);
+    if (allAmounts.length) {
+        if (paidMax != null) {
+            const candidates = allAmounts.filter((n) => n <= paidMax + 0.01);
+            if (candidates.length) return Math.max(...candidates);
+        }
+        return Math.max(...allAmounts);
     }
 
     return null;
+}
+
+function round2(n) {
+    return Math.round(n * 100) / 100;
 }
 
 function extractBusinessName(text) {
