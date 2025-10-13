@@ -213,7 +213,7 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                                             תאריך
                                         </Typography>
                                         <Typography variant="body1">
-                                            {result.date
+                                            {result.date && !isNaN(new Date(result.date).getTime())
                                                 ? new Date(result.date).toLocaleDateString('he-IL')
                                                 : 'לא זוהה'}
                                         </Typography>

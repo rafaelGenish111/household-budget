@@ -118,7 +118,14 @@ const AddTransactionDialog = ({ open, onClose, transaction }) => {
     const handleScanComplete = (scannedData) => {
         // עדכון השדות עם הנתונים שנסרקו
         if (scannedData.date) {
-            setValue('date', format(new Date(scannedData.date), 'yyyy-MM-dd'));
+            try {
+                const dateObj = new Date(scannedData.date);
+                if (!isNaN(dateObj.getTime())) {
+                    setValue('date', format(dateObj, 'yyyy-MM-dd'));
+                }
+            } catch (error) {
+                console.error('Invalid date from scanner:', scannedData.date);
+            }
         }
         if (scannedData.total) {
             setValue('amount', scannedData.total);
