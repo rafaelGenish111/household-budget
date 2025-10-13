@@ -88,6 +88,8 @@ jspm_packages/
 *.json
 !package.json
 !package-lock.json
+!vercel.json
+!tsconfig.json
 
 # Uploads
 server/uploads/*
