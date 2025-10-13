@@ -57,12 +57,13 @@ export const scanReceiptImage = async (req, res) => {
         }
 
         // Create receipt record
+        const isPdf = mimeType.includes('pdf');
+
         const receipt = new Receipt({
             household: req.user.household,
             imageUrl:
                 imageUrl ||
-                `data:${mimeType.includes('pdf') ? 'application/pdf' : 'image/jpeg'};base64,` +
-                    fileBuffer.toString('base64').substring(0, 100) + '...', // preview only
+                (!isPdf ? `data:image/jpeg;base64,${fileBuffer.toString('base64')}` : ''),
             scannedData: {
                 ...scannedData,
                 category,
@@ -81,6 +82,7 @@ export const scanReceiptImage = async (req, res) => {
             subcategory,
             items: scannedData.items,
             imageUrl: receipt.imageUrl,
+            isPdf,
             confidence: scannedData.confidence,
             rawText: scannedData.rawText,
         });
