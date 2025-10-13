@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
+import mongoose from 'mongoose';
 import { errorHandler } from './middleware/errorHandler.js';
 import { config } from './config/config.js';
 
@@ -24,8 +25,20 @@ const __dirname = path.dirname(__filename);
 // Load env vars
 dotenv.config();
 
-// Connect to database
-connectDB();
+// Lazy DB connection for Serverless: נתחבר על פי דרישה
+let isConnecting = false;
+async function ensureDbConnected() {
+    if (mongoose.connection.readyState === 1) return; // already connected
+    if (isConnecting) return;
+    isConnecting = true;
+    try {
+        await connectDB();
+    } catch (e) {
+        console.error('DB connect error (lazy):', e.message);
+    } finally {
+        isConnecting = false;
+    }
+}
 
 const app = express();
 
@@ -57,6 +70,18 @@ app.use(
         optionsSuccessStatus: 200 // תמיכה ב-Internet Explorer
     })
 );
+
+// Health first (ללא תלות ב-DB)
+app.get('/api/health', (req, res) => {
+    res.json({ success: true, message: 'Server is running', timestamp: new Date().toISOString() });
+});
+
+// Ensure DB for API routes (למעט health)
+app.use(async (req, res, next) => {
+    if (req.path === '/api/health') return next();
+    await ensureDbConnected();
+    return next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -103,14 +128,7 @@ app.get('/favicon.png', (req, res) => {
     res.status(204).end(); // No content
 });
 
-// Health check route
-app.get('/api/health', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Server is running',
-        timestamp: new Date().toISOString(),
-    });
-});
+// (moved health route above)
 
 // Error handler (must be last)
 app.use(errorHandler);
@@ -130,5 +148,8 @@ if (!process.env.VERCEL) {
     });
 }
 
-export default app;
+// ייצוא כ-handler עבור Vercel Serverless
+export default function handler(req, res) {
+    return app(req, res);
+}
 
