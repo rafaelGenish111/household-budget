@@ -17,10 +17,10 @@ export const scanReceiptImage = async (req, res) => {
         let fileBuffer = req.file.buffer;
         const mimeType = req.file.mimetype;
 
-        console.log('📄 קובץ התקבל:', { 
-            mimetype: mimeType, 
+        console.log('📄 קובץ התקבל:', {
+            mimetype: mimeType,
             size: req.file.size,
-            originalName: req.file.originalname 
+            originalName: req.file.originalname
         });
 
         // אם זה תמונה, בצע אופטימיזציה
@@ -40,7 +40,7 @@ export const scanReceiptImage = async (req, res) => {
         const subcategory = category === 'מזון' ? 'סופרמרקט' : 'אחר';
 
         let imageUrl = '';
-        
+
         // Save image to disk only in development (Vercel doesn't support file writes)
         if (process.env.NODE_ENV !== 'production' && mimeType.startsWith('image/')) {
             try {

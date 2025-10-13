@@ -22,11 +22,13 @@ import { fetchSummary, fetchByCategory } from '../../store/slices/transactionsSl
 import { fetchSavings } from '../../store/slices/savingsSlice';
 import { aiService } from '../../services/aiService';
 import StatCard from '../../components/common/StatCard';
+import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 
 const Dashboard = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { summary, byCategory, isLoading } = useSelector((state) => state.transactions);
     const { savings } = useSelector((state) => state.savings);
     const [recommendations, setRecommendations] = useState([]);
@@ -113,6 +115,7 @@ const Dashboard = () => {
                         value={`₪${(summary?.income || 0).toLocaleString()}`}
                         icon={<TrendingUp sx={{ color: 'white' }} />}
                         color="#4caf50"
+                        onClick={() => navigate('/transactions?type=income')}
                     />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
@@ -121,6 +124,7 @@ const Dashboard = () => {
                         value={`₪${(summary?.expense || 0).toLocaleString()}`}
                         icon={<TrendingDown sx={{ color: 'white' }} />}
                         color="#f44336"
+                        onClick={() => navigate('/transactions?type=expense')}
                     />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
@@ -129,6 +133,7 @@ const Dashboard = () => {
                         value={`₪${balance.toLocaleString()}`}
                         icon={<AccountBalance sx={{ color: 'white' }} />}
                         color={balance >= 0 ? '#2196f3' : '#ff9800'}
+                        onClick={() => navigate('/transactions')}
                     />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
@@ -137,6 +142,7 @@ const Dashboard = () => {
                         value={`₪${totalSavings.toLocaleString()}`}
                         icon={<SavingsIcon sx={{ color: 'white' }} />}
                         color="#9c27b0"
+                        onClick={() => navigate('/savings')}
                     />
                 </Grid>
             </Grid>
@@ -146,7 +152,12 @@ const Dashboard = () => {
                 {/* Pie Chart */}
                 <Grid item xs={12} md={6}>
                     <Paper sx={{ p: 3, height: '100%' }}>
-                        <Typography variant="h6" gutterBottom>
+                        <Typography
+                            variant="h6"
+                            gutterBottom
+                            sx={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 4 }}
+                            onClick={() => navigate('/transactions?type=expense')}
+                        >
                             התפלגות הוצאות לפי קטגוריה
                         </Typography>
                         <PieChart data={pieData} />
@@ -156,7 +167,12 @@ const Dashboard = () => {
                 {/* Line Chart */}
                 <Grid item xs={12} md={6}>
                     <Paper sx={{ p: 3, height: '100%' }}>
-                        <Typography variant="h6" gutterBottom>
+                        <Typography
+                            variant="h6"
+                            gutterBottom
+                            sx={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 4 }}
+                            onClick={() => navigate('/transactions')}
+                        >
                             מגמה חודשית
                         </Typography>
                         <LineChart data={monthlyTrend} />
