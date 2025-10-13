@@ -42,7 +42,11 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
             remaining: commitment?.remaining || 0,
             monthlyPayment: commitment?.monthlyPayment || 0,
             paymentsLeft: commitment?.paymentsLeft || 0,
-            startDate: commitment?.startDate ? format(new Date(commitment.startDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+            startDate: commitment?.startDate ? 
+                (commitment.startDate && !isNaN(new Date(commitment.startDate).getTime()) ? 
+                    format(new Date(commitment.startDate), 'yyyy-MM-dd') : 
+                    format(new Date(), 'yyyy-MM-dd')) : 
+                format(new Date(), 'yyyy-MM-dd'),
         },
     });
 
@@ -54,7 +58,9 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                 remaining: commitment.remaining,
                 monthlyPayment: commitment.monthlyPayment,
                 paymentsLeft: commitment.paymentsLeft,
-                startDate: format(new Date(commitment.startDate), 'yyyy-MM-dd'),
+                startDate: commitment.startDate && !isNaN(new Date(commitment.startDate).getTime()) ? 
+                    format(new Date(commitment.startDate), 'yyyy-MM-dd') : 
+                    format(new Date(), 'yyyy-MM-dd'),
             });
         } else if (open && !commitment) {
             reset({

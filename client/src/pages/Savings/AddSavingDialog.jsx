@@ -40,7 +40,8 @@ const AddSavingDialog = ({ open, onClose, saving }) => {
             goal: saving?.goal || 0,
             current: saving?.current || 0,
             monthlyContribution: saving?.monthlyContribution || 0,
-            targetDate: saving?.targetDate ? format(new Date(saving.targetDate), 'yyyy-MM-dd') : '',
+            targetDate: saving?.targetDate && !isNaN(new Date(saving.targetDate).getTime()) ? 
+                format(new Date(saving.targetDate), 'yyyy-MM-dd') : '',
         },
     });
 
@@ -51,7 +52,8 @@ const AddSavingDialog = ({ open, onClose, saving }) => {
                 goal: saving.goal,
                 current: saving.current,
                 monthlyContribution: saving.monthlyContribution || 0,
-                targetDate: saving.targetDate ? format(new Date(saving.targetDate), 'yyyy-MM-dd') : '',
+                targetDate: saving.targetDate && !isNaN(new Date(saving.targetDate).getTime()) ? 
+                    format(new Date(saving.targetDate), 'yyyy-MM-dd') : '',
             });
         } else if (open && !saving) {
             reset({
