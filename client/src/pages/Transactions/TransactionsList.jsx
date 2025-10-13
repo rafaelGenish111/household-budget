@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -36,6 +36,7 @@ const TransactionsList = () => {
     const { transactions, isLoading, currentPage, totalPages, count } = useSelector(
         (state) => state.transactions
     );
+    const navigate = useNavigate();
     const { categories } = useSelector((state) => state.categories);
 
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,6 +56,18 @@ const TransactionsList = () => {
     useEffect(() => {
         dispatch(fetchTransactions(filters));
     }, [dispatch, filters]);
+
+    // Back button: אם הגענו עם type=income/expense, חזרה תחזיר לדף קודם
+    useEffect(() => {
+        const handlePop = () => {
+            // אם אין היסטוריה נוספת, ננווט לדשבורד
+            if (window.history.state && window.history.length <= 1) {
+                navigate('/dashboard', { replace: true });
+            }
+        };
+        window.addEventListener('popstate', handlePop);
+        return () => window.removeEventListener('popstate', handlePop);
+    }, [navigate]);
 
     useEffect(() => {
         // Open dialog if "new=true" in URL

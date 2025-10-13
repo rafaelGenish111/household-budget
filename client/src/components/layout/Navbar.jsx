@@ -40,7 +40,13 @@ const Navbar = ({ onMenuClick }) => {
     return (
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                <Typography
+                    variant="h6"
+                    component="div"
+                    sx={{ flexGrow: 1, cursor: 'pointer' }}
+                    onClick={() => navigate('/')}
+                    title="חזרה לדף הבית"
+                >
                     💰 ניהול משק בית
                 </Typography>
 

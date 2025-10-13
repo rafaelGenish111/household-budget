@@ -13,6 +13,7 @@ import {
     TrendingDown,
     AccountBalance,
     Savings as SavingsIcon,
+    Assignment as CommitmentsIcon,
     Warning,
     Info,
     CheckCircle,
@@ -143,6 +144,15 @@ const Dashboard = () => {
                         icon={<SavingsIcon sx={{ color: 'white' }} />}
                         color="#9c27b0"
                         onClick={() => navigate('/savings')}
+                    />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <StatCard
+                        title="התחייבויות"
+                        value="צפה"
+                        icon={<CommitmentsIcon sx={{ color: 'white' }} />}
+                        color="#ff7043"
+                        onClick={() => navigate('/commitments')}
                     />
                 </Grid>
             </Grid>
