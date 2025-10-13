@@ -170,7 +170,12 @@ const Dashboard = () => {
                         >
                             התפלגות הוצאות לפי קטגוריה
                         </Typography>
-                        <PieChart data={pieData} />
+                        <PieChart
+                            data={pieData}
+                            onSliceClick={(categoryName) =>
+                                navigate(`/transactions?type=expense&category=${encodeURIComponent(categoryName)}`)
+                            }
+                        />
                     </Paper>
                 </Grid>
 

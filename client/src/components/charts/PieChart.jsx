@@ -52,7 +52,7 @@ const CustomLegend = ({ payload }) => {
     );
 };
 
-const ExpensePieChart = ({ data, title = "התפלגות הוצאות" }) => {
+const ExpensePieChart = ({ data, title = "התפלגות הוצאות", onSliceClick }) => {
     if (!data || data.length === 0) {
         return (
             <Box sx={{ textAlign: 'center', p: 3 }}>
@@ -86,6 +86,11 @@ const ExpensePieChart = ({ data, title = "התפלגות הוצאות" }) => {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
+                        onClick={(entry) => {
+                            if (onSliceClick) {
+                                onSliceClick(entry.name);
+                            }
+                        }}
                     >
                         {dataWithPercentage.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
