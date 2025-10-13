@@ -56,6 +56,37 @@ app.use('/api/receipts', receiptRoutes);
 // Serve static files (uploads)
 app.use('/uploads', express.static('uploads'));
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Household Budget Server is running! 🏠💰',
+        version: '1.0.0',
+        endpoints: {
+            health: '/api/health',
+            auth: '/api/auth',
+            transactions: '/api/transactions',
+            savings: '/api/savings',
+            commitments: '/api/commitments',
+            goals: '/api/goals',
+            categories: '/api/categories',
+            household: '/api/household',
+            ai: '/api/ai',
+            receipts: '/api/receipts'
+        },
+        timestamp: new Date().toISOString(),
+    });
+});
+
+// Favicon route (to prevent 404 errors)
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end(); // No content
+});
+
+app.get('/favicon.png', (req, res) => {
+    res.status(204).end(); // No content
+});
+
 // Health check route
 app.get('/api/health', (req, res) => {
     res.json({
