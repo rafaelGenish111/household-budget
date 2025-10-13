@@ -57,7 +57,7 @@ export const scanReceiptImage = async (req, res) => {
         }
 
         // Create receipt record
-        const isPdf = mimeType.includes('pdf');
+        const isPdf = mimeType && mimeType.includes('pdf');
 
         const receipt = new Receipt({
             household: req.user.household,

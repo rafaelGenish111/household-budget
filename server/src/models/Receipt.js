@@ -13,7 +13,7 @@ const receiptSchema = new mongoose.Schema(
         },
         imageUrl: {
             type: String,
-            required: true,
+            default: '',
         },
         scannedData: {
             date: Date,
