@@ -1,21 +1,32 @@
 import axios from 'axios';
 
-// אם יש VITE_API_URL, השתמש בו. אחרת, נסה לזהות את כתובת השרת אוטומטית
+// קביעת כתובת השרת
 const getBaseURL = () => {
+    console.log('🔍 Environment check:', {
+        VITE_API_URL: import.meta.env.VITE_API_URL,
+        PROD: import.meta.env.PROD,
+        DEV: import.meta.env.DEV
+    });
+
+    // אם יש VITE_API_URL, השתמש בו
     if (import.meta.env.VITE_API_URL) {
+        console.log('✅ Using VITE_API_URL:', import.meta.env.VITE_API_URL);
         return import.meta.env.VITE_API_URL;
     }
 
     // ב-production, השתמש בכתובת ה-Vercel של השרת
     if (import.meta.env.PROD) {
-        return 'https://your-backend-app.vercel.app/api'; // החלף ב-URL האמיתי שלך
+        console.log('🏭 Production mode - using hardcoded URL');
+        return 'https://household-budget-server.vercel.app/api';
     }
 
     // ב-development, אם יש proxy של Vite, השתמש ב-/api
     if (import.meta.env.DEV) {
+        console.log('🔧 Development mode - using proxy');
         return '/api'; // Vite proxy יטפל בזה
     }
 
+    console.log('⚠️ Fallback to localhost');
     return 'http://localhost:7000/api';
 };
 
