@@ -73,7 +73,15 @@ app.use(
 
 // Health first (ללא תלות ב-DB)
 app.get('/api/health', (req, res) => {
-    res.json({ success: true, message: 'Server is running', timestamp: new Date().toISOString() });
+    res.json({ 
+        success: true, 
+        message: 'Server is running', 
+        timestamp: new Date().toISOString(),
+        db: {
+            readyState: mongoose.connection.readyState, // 0=disconnected,1=connected,2=connecting,3=disconnecting
+            hasUri: !!process.env.MONGO_URI
+        }
+    });
 });
 
 // Ensure DB for API routes (למעט health)
