@@ -68,7 +68,7 @@ app.get('/api/health', (req, res) => {
 // Error handler (must be last)
 app.use(errorHandler);
 
-const PORT = config.port;
+const PORT = process.env.PORT || config.port;
 
 const server = app.listen(PORT, () => {
     console.log(`🚀 Server running in ${config.nodeEnv} mode on port ${PORT}`);

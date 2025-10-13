@@ -6,13 +6,17 @@ const getBaseURL = () => {
         return import.meta.env.VITE_API_URL;
     }
 
+    // ב-production, השתמש בכתובת ה-Vercel של השרת
+    if (import.meta.env.PROD) {
+        return 'https://your-backend-app.vercel.app/api'; // החלף ב-URL האמיתי שלך
+    }
+
     // ב-development, אם יש proxy של Vite, השתמש ב-/api
-    // אחרת, השתמש ב-localhost
     if (import.meta.env.DEV) {
         return '/api'; // Vite proxy יטפל בזה
     }
 
-    return 'http://localhost:5000/api';
+    return 'http://localhost:7000/api';
 };
 
 const api = axios.create({

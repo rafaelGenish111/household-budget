@@ -1,13 +1,26 @@
 // 🚀 Google Cloud Vision API עם Fallback חכם
 import vision from '@google-cloud/vision';
+import fs from 'fs';
 
 // סורק חשבונית - ינסה Google Cloud Vision, אם לא זמין יעבוד במצב בסיסי
 export async function scanReceipt(imageBuffer) {
     try {
         console.log('🔍 מנסה לסרוק עם Google Cloud Vision...');
+        console.log('🔧 משתנה סביבה GOOGLE_APPLICATION_CREDENTIALS:', process.env.GOOGLE_APPLICATION_CREDENTIALS);
+        console.log('📁 קובץ קיים?', fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS || ''));
 
-        // נסיון להשתמש ב-Google Cloud Vision
-        const client = new vision.ImageAnnotatorClient();
+        // קריאת קובץ המפתחות
+        const keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        const credentials = JSON.parse(fs.readFileSync(keyFile, 'utf8'));
+
+        console.log('🔑 משתמש ב-Service Account:', credentials.client_email);
+        console.log('📦 Project ID:', credentials.project_id);
+
+        // יצירת לקוח עם הגדרות מפורשות
+        const client = new vision.ImageAnnotatorClient({
+            projectId: credentials.project_id,
+            credentials: credentials,
+        });
         const [result] = await client.textDetection(imageBuffer);
         const detections = result.textAnnotations;
 
@@ -40,8 +53,20 @@ export async function scanReceipt(imageBuffer) {
         return extractedData;
 
     } catch (error) {
+        console.error('❌ שגיאה ב-Google Cloud Vision:', error.message);
+        console.error('🔍 פרטי השגיאה:', {
+            code: error.code,
+            status: error.status,
+            message: error.message,
+            details: error.details
+        });
+
         // אם יש שגיאת הרשאות או Billing, עבור למצב בסיסי
-        if (error.code === 7 || error.message.includes('PERMISSION_DENIED') || error.message.includes('billing')) {
+        if (error.code === 7 ||
+            error.code === 'PERMISSION_DENIED' ||
+            error.message.includes('PERMISSION_DENIED') ||
+            error.message.includes('billing') ||
+            error.message.includes('API not enabled')) {
             console.log('⚠️ Google Cloud Vision לא זמין (צריך להפעיל Billing/API)');
             console.log('📝 עובר למצב בסיסי - תצטרך למלא ידנית');
             return getBasicScan();
