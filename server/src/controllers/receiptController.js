@@ -42,14 +42,14 @@ export const scanReceiptImage = async (req, res) => {
         let imageUrl = '';
         
         // Save image to disk only in development (Vercel doesn't support file writes)
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production' && mimeType.startsWith('image/')) {
             try {
                 const uploadsDir = path.join(process.cwd(), 'uploads', 'receipts');
                 await fs.mkdir(uploadsDir, { recursive: true });
 
                 const filename = `receipt-${Date.now()}-${req.user._id}.jpg`;
                 const filepath = path.join(uploadsDir, filename);
-                await fs.writeFile(filepath, imageBuffer);
+                await fs.writeFile(filepath, fileBuffer);
                 imageUrl = `/uploads/receipts/${filename}`;
             } catch (fileError) {
                 console.warn('Could not save file (serverless environment):', fileError.message);
@@ -59,7 +59,10 @@ export const scanReceiptImage = async (req, res) => {
         // Create receipt record
         const receipt = new Receipt({
             household: req.user.household,
-            imageUrl: imageUrl || 'data:image/jpeg;base64,' + imageBuffer.toString('base64').substring(0, 100) + '...', // Store base64 preview or empty
+            imageUrl:
+                imageUrl ||
+                `data:${mimeType.includes('pdf') ? 'application/pdf' : 'image/jpeg'};base64,` +
+                    fileBuffer.toString('base64').substring(0, 100) + '...', // preview only
             scannedData: {
                 ...scannedData,
                 category,
