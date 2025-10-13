@@ -9,9 +9,19 @@ export async function scanReceipt(imageBuffer) {
         console.log('🔧 משתנה סביבה GOOGLE_APPLICATION_CREDENTIALS:', process.env.GOOGLE_APPLICATION_CREDENTIALS);
         console.log('📁 קובץ קיים?', fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS || ''));
 
-        // קריאת קובץ המפתחות
-        const keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-        const credentials = JSON.parse(fs.readFileSync(keyFile, 'utf8'));
+        // קריאת מפתחות (מקובץ או ממשתנה סביבה)
+        let credentials;
+        if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+            // אם זה JSON string (ב-Vercel), פרס אותו
+            if (process.env.GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
+                credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+            } else {
+                // אם זה נתיב לקובץ (ב-development), קרא את הקובץ
+                credentials = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+            }
+        } else {
+            throw new Error('GOOGLE_APPLICATION_CREDENTIALS לא מוגדר');
+        }
 
         console.log('🔑 משתמש ב-Service Account:', credentials.client_email);
         console.log('📦 Project ID:', credentials.project_id);

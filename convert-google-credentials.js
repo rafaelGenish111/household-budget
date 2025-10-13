@@ -1,6 +1,6 @@
 // סקריפט להמרת קובץ Google Cloud credentials ל-string עבור Vercel
-import fs from 'fs';
-import path from 'path';
+const fs = require('fs');
+const path = require('path');
 
 const credentialsFile = './server/household-budget-key.json';
 
