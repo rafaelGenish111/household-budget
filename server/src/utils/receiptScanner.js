@@ -1,7 +1,9 @@
 // 🚀 Google Cloud Vision API עם Fallback חכם + תמיכה ב-PDF
 import vision from '@google-cloud/vision';
 import fs from 'fs';
-import pdfParse from 'pdf-parse';
+// pdf-parse (CJS) תאימות ל-ESM/Vercel
+import * as pdfParseNS from 'pdf-parse';
+const pdfParse = pdfParseNS.default || pdfParseNS; // הפונקציה עצמה
 
 // סורק חשבונית (תמונה או PDF) - ינסה Google Cloud Vision, אם לא זמין יעבוד במצב בסיסי
 export async function scanReceipt(fileBuffer, mimeType = 'image/jpeg') {
