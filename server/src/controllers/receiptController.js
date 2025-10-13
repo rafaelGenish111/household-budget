@@ -29,18 +29,27 @@ export const scanReceiptImage = async (req, res) => {
         const category = detectCategory(scannedData.businessName);
         const subcategory = category === 'מזון' ? 'סופרמרקט' : 'אחר';
 
-        // Save image to disk
-        const uploadsDir = path.join(process.cwd(), 'uploads', 'receipts');
-        await fs.mkdir(uploadsDir, { recursive: true });
+        let imageUrl = '';
+        
+        // Save image to disk only in development (Vercel doesn't support file writes)
+        if (process.env.NODE_ENV !== 'production') {
+            try {
+                const uploadsDir = path.join(process.cwd(), 'uploads', 'receipts');
+                await fs.mkdir(uploadsDir, { recursive: true });
 
-        const filename = `receipt-${Date.now()}-${req.user._id}.jpg`;
-        const filepath = path.join(uploadsDir, filename);
-        await fs.writeFile(filepath, imageBuffer);
+                const filename = `receipt-${Date.now()}-${req.user._id}.jpg`;
+                const filepath = path.join(uploadsDir, filename);
+                await fs.writeFile(filepath, imageBuffer);
+                imageUrl = `/uploads/receipts/${filename}`;
+            } catch (fileError) {
+                console.warn('Could not save file (serverless environment):', fileError.message);
+            }
+        }
 
         // Create receipt record
         const receipt = new Receipt({
             household: req.user.household,
-            imageUrl: `/uploads/receipts/${filename}`,
+            imageUrl: imageUrl || 'data:image/jpeg;base64,' + imageBuffer.toString('base64').substring(0, 100) + '...', // Store base64 preview or empty
             scannedData: {
                 ...scannedData,
                 category,
