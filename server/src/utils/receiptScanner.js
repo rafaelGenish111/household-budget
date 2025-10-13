@@ -1,9 +1,23 @@
 // 🚀 Google Cloud Vision API עם Fallback חכם + תמיכה ב-PDF
 import vision from '@google-cloud/vision';
 import fs from 'fs';
-// pdf-parse (CJS) תאימות ל-ESM/Vercel
-import * as pdfParseNS from 'pdf-parse';
-const pdfParse = pdfParseNS.default || pdfParseNS; // הפונקציה עצמה
+// טעינת pdf-parse תתבצע דינמית רק כשנזהה PDF
+// זאת כדי למנוע שגיאות ייבוא בסביבת Serverless של Vercel
+async function getPdfParse() {
+    // Polyfills מינימליים שה-pdfjs (תלות של pdf-parse) מצפה להם בסביבת Node
+    if (typeof globalThis.DOMMatrix === 'undefined') {
+        globalThis.DOMMatrix = class {};
+    }
+    if (typeof globalThis.Path2D === 'undefined') {
+        globalThis.Path2D = class {};
+    }
+    if (typeof globalThis.ImageData === 'undefined') {
+        globalThis.ImageData = class {};
+    }
+
+    const mod = await import('pdf-parse');
+    return mod.default || mod;
+}
 
 // סורק חשבונית (תמונה או PDF) - ינסה Google Cloud Vision, אם לא זמין יעבוד במצב בסיסי
 export async function scanReceipt(fileBuffer, mimeType = 'image/jpeg') {
@@ -36,6 +50,7 @@ export async function scanReceipt(fileBuffer, mimeType = 'image/jpeg') {
         if (mimeType === 'application/pdf') {
             console.log('📄 מזהה PDF - מנסה לחלץ טקסט...');
             try {
+                const pdfParse = await getPdfParse();
                 const pdfData = await pdfParse(fileBuffer);
                 text = pdfData.text;
                 console.log('✅ טקסט חולץ מ-PDF בהצלחה!');
