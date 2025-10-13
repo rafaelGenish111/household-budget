@@ -1,9 +1,10 @@
-// 🚀 Google Cloud Vision API עם Fallback חכם
+// 🚀 Google Cloud Vision API עם Fallback חכם + תמיכה ב-PDF
 import vision from '@google-cloud/vision';
 import fs from 'fs';
+import pdfParse from 'pdf-parse';
 
-// סורק חשבונית - ינסה Google Cloud Vision, אם לא זמין יעבוד במצב בסיסי
-export async function scanReceipt(imageBuffer) {
+// סורק חשבונית (תמונה או PDF) - ינסה Google Cloud Vision, אם לא זמין יעבוד במצב בסיסי
+export async function scanReceipt(fileBuffer, mimeType = 'image/jpeg') {
     try {
         console.log('🔍 מנסה לסרוק עם Google Cloud Vision...');
         console.log('🔧 משתנה סביבה GOOGLE_APPLICATION_CREDENTIALS:', process.env.GOOGLE_APPLICATION_CREDENTIALS);
@@ -25,23 +26,43 @@ export async function scanReceipt(imageBuffer) {
 
         console.log('🔑 משתמש ב-Service Account:', credentials.client_email);
         console.log('📦 Project ID:', credentials.project_id);
+        console.log('📄 סוג קובץ:', mimeType);
 
-        // יצירת לקוח עם הגדרות מפורשות
-        const client = new vision.ImageAnnotatorClient({
-            projectId: credentials.project_id,
-            credentials: credentials,
-        });
-        const [result] = await client.textDetection(imageBuffer);
-        const detections = result.textAnnotations;
+        let text = '';
 
-        if (!detections || detections.length === 0) {
-            console.log('⚠️ לא זוהה טקסט בתמונה');
-            return getBasicScan();
+        // אם זה PDF, נסה לחלץ טקסט ישירות
+        if (mimeType === 'application/pdf') {
+            console.log('📄 מזהה PDF - מנסה לחלץ טקסט...');
+            try {
+                const pdfData = await pdfParse(fileBuffer);
+                text = pdfData.text;
+                console.log('✅ טקסט חולץ מ-PDF בהצלחה!');
+                
+                if (!text || text.trim().length === 0) {
+                    console.log('⚠️ PDF ריק או לא קריא');
+                    return getBasicScan();
+                }
+            } catch (pdfError) {
+                console.error('❌ שגיאה בחילוץ טקסט מ-PDF:', pdfError.message);
+                return getBasicScan();
+            }
+        } else {
+            // תמונה - השתמש ב-Vision API
+            const client = new vision.ImageAnnotatorClient({
+                projectId: credentials.project_id,
+                credentials: credentials,
+            });
+            const [result] = await client.textDetection(fileBuffer);
+            const detections = result.textAnnotations;
+
+            if (!detections || detections.length === 0) {
+                console.log('⚠️ לא זוהה טקסט בתמונה');
+                return getBasicScan();
+            }
+
+            text = detections[0].description;
+            console.log('✅ Google Cloud Vision זיהה טקסט בהצלחה!');
         }
-
-        // הצלחנו לזהות טקסט!
-        const text = detections[0].description;
-        console.log('✅ Google Cloud Vision זיהה טקסט בהצלחה!');
 
         const extractedData = {
             date: extractDate(text),

@@ -11,19 +11,29 @@ const __dirname = path.dirname(__filename);
 export const scanReceiptImage = async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ error: 'לא הועלתה תמונה' });
+            return res.status(400).json({ error: 'לא הועלה קובץ' });
         }
 
-        let imageBuffer = req.file.buffer;
+        let fileBuffer = req.file.buffer;
+        const mimeType = req.file.mimetype;
 
-        // Resize and optimize image
-        imageBuffer = await sharp(imageBuffer)
-            .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 90 })
-            .toBuffer();
+        console.log('📄 קובץ התקבל:', { 
+            mimetype: mimeType, 
+            size: req.file.size,
+            originalName: req.file.originalname 
+        });
 
-        // Scan receipt
-        const scannedData = await scanReceipt(imageBuffer);
+        // אם זה תמונה, בצע אופטימיזציה
+        if (mimeType.startsWith('image/')) {
+            console.log('🖼️ מבצע אופטימיזציה לתמונה...');
+            fileBuffer = await sharp(fileBuffer)
+                .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
+                .jpeg({ quality: 90 })
+                .toBuffer();
+        }
+
+        // Scan receipt (תמונה או PDF)
+        const scannedData = await scanReceipt(fileBuffer, mimeType);
 
         // Detect category
         const category = detectCategory(scannedData.businessName);

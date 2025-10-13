@@ -16,10 +16,11 @@ const upload = multer({
         fileSize: 10 * 1024 * 1024, // 10MB
     },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+        if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('רק קבצי תמונה מותרים'), false);
+            cb(new Error('רק קבצי תמונה (JPG, PNG, WEBP) או PDF מותרים'), false);
         }
     },
 });

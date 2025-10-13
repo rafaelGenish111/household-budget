@@ -21,6 +21,7 @@ import {
     Close,
     CheckCircle,
     Warning,
+    PictureAsPdf,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import api from '../../services/api';
@@ -36,9 +37,14 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
 
         const file = acceptedFiles[0];
 
-        const reader = new FileReader();
-        reader.onload = (e) => setPreview(e.target.result);
-        reader.readAsDataURL(file);
+        // אם זה PDF, הצג אייקון במקום תצוגה מקדימה
+        if (file.type === 'application/pdf') {
+            setPreview('PDF');
+        } else {
+            const reader = new FileReader();
+            reader.onload = (e) => setPreview(e.target.result);
+            reader.readAsDataURL(file);
+        }
 
         await scanReceipt(file);
     };
@@ -46,7 +52,8 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: {
-            'image/*': ['.jpeg', '.jpg', '.png', '.heic'],
+            'image/*': ['.jpeg', '.jpg', '.png', '.heic', '.webp'],
+            'application/pdf': ['.pdf'],
         },
         maxFiles: 1,
         maxSize: 10 * 1024 * 1024,
@@ -138,11 +145,17 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                             <input {...getInputProps()} />
                             <Upload sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                             <Typography variant="h6" gutterBottom>
-                                {isDragActive ? 'שחרר כאן...' : 'גרור תמונה או לחץ להעלאה'}
+                                {isDragActive ? 'שחרר כאן...' : 'גרור קובץ או לחץ להעלאה'}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                תומך ב-JPG, PNG, HEIC (עד 10MB)
+                                תומך ב-JPG, PNG, WEBP, PDF (עד 10MB)
                             </Typography>
+                            <Chip 
+                                label="חדש: תמיכה ב-PDF! 📄" 
+                                color="success" 
+                                size="small" 
+                                sx={{ mt: 1 }} 
+                            />
                         </Box>
 
                         <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
@@ -161,12 +174,31 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                 {preview && (
                     <Box>
                         <Card sx={{ mb: 2 }}>
-                            <CardMedia
-                                component="img"
-                                image={preview}
-                                alt="Receipt preview"
-                                sx={{ maxHeight: 400, objectFit: 'contain' }}
-                            />
+                            {preview === 'PDF' ? (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        p: 4,
+                                        bgcolor: 'grey.100',
+                                    }}
+                                >
+                                    <PictureAsPdf sx={{ fontSize: 80, color: 'error.main', mb: 2 }} />
+                                    <Typography variant="h6">קובץ PDF</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        הקובץ נסרק...
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                <CardMedia
+                                    component="img"
+                                    image={preview}
+                                    alt="Receipt preview"
+                                    sx={{ maxHeight: 400, objectFit: 'contain' }}
+                                />
+                            )}
                         </Card>
 
                         {scanning && (
