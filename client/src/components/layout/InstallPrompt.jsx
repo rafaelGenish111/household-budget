@@ -13,6 +13,10 @@ export default function InstallPrompt() {
       setOpen(true);
     };
     window.addEventListener('beforeinstallprompt', handler);
+    // אם כבר מותקן/לא זכאי, לא נציג
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setOpen(false);
+    }
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 

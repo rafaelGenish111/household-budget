@@ -6,6 +6,7 @@ export default defineConfig({
     plugins: [
         react(),
         VitePWA({
+            injectRegister: 'auto',
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'offline.html'],
             manifest: {
@@ -40,7 +41,6 @@ export default defineConfig({
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-                navigateFallback: '/offline.html',
                 runtimeCaching: [
                     {
                         urlPattern: ({ url }) => url.pathname.startsWith('/api'),
