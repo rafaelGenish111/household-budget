@@ -10,17 +10,17 @@
   "lang": "he",
   "icons": [
     {
-      "src": "/pwa-192x192.png",
+      "src": "https://via.placeholder.com/192.png?text=HB",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/pwa-512x512.png",
+      "src": "https://via.placeholder.com/512.png?text=HB",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/pwa-512x512-maskable.png",
+      "src": "https://via.placeholder.com/512.png?text=HB",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
