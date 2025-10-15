@@ -267,7 +267,7 @@ export const registerWithInvitation = async (req, res) => {
 
         // Check if user exists
         let user = await User.findOne({ email });
-        
+
         if (user) {
             // Existing user
             if (user.household) {
@@ -276,7 +276,7 @@ export const registerWithInvitation = async (req, res) => {
                     message: 'משתמש זה כבר משויך למשק בית אחר',
                 });
             }
-            
+
             user.household = invitation.household;
             user.role = 'member';
             await user.save();

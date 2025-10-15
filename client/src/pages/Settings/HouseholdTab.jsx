@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     TextField,
@@ -11,26 +11,79 @@ import {
     IconButton,
     Chip,
     Alert,
+    CircularProgress,
 } from '@mui/material';
 import { Delete, PersonAdd } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import InviteMembers from '../../components/Household/InviteMembers';
+import api from '../../services/api';
 
 const HouseholdTab = () => {
     const { user } = useSelector((state) => state.auth);
-    const [householdName, setHouseholdName] = useState('משק הבית שלי');
+    const [householdName, setHouseholdName] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+    const [household, setHousehold] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock members - in production, fetch from API
-    const members = [
-        { id: 1, name: user?.name, email: user?.email, role: 'admin' },
-    ];
+    useEffect(() => {
+        fetchHouseholdData();
+    }, []);
 
-    const handleSave = () => {
-        setSuccessMessage('שם משק הבית עודכן בהצלחה!');
-        setTimeout(() => setSuccessMessage(''), 3000);
+    const fetchHouseholdData = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/household');
+            setHousehold(response.data.household);
+            setHouseholdName(response.data.household.name);
+        } catch (err) {
+            setError('שגיאה בטעינת נתוני משק הבית');
+            console.error('Error fetching household:', err);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const handleSave = async () => {
+        try {
+            await api.put('/household', { name: householdName });
+            setSuccessMessage('שם משק הבית עודכן בהצלחה!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+            fetchHouseholdData(); // Refresh data
+        } catch (err) {
+            setError('שגיאה בעדכון שם משק הבית');
+        }
+    };
+
+    const handleRemoveMember = async (userId) => {
+        if (window.confirm('האם אתה בטוח שברצונך להסיר את המשתמש הזה?')) {
+            try {
+                await api.delete(`/household/member/${userId}`);
+                setSuccessMessage('משתמש הוסר בהצלחה');
+                setTimeout(() => setSuccessMessage(''), 3000);
+                fetchHouseholdData(); // Refresh data
+            } catch (err) {
+                setError('שגיאה בהסרת המשתמש');
+            }
+        }
+    };
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Alert severity="error">
+                {error}
+            </Alert>
+        );
+    }
 
     return (
         <Box>
@@ -61,11 +114,11 @@ const HouseholdTab = () => {
             </Typography>
 
             <List>
-                {members.map((member) => (
-                    <ListItem key={member.id}>
+                {household?.members?.map((member) => (
+                    <ListItem key={member.user._id}>
                         <ListItemText
-                            primary={member.name}
-                            secondary={member.email}
+                            primary={member.user.name}
+                            secondary={member.user.email}
                         />
                         <ListItemSecondaryAction>
                             <Chip
@@ -75,7 +128,11 @@ const HouseholdTab = () => {
                                 sx={{ mr: 1 }}
                             />
                             {member.role !== 'admin' && (
-                                <IconButton edge="end" color="error">
+                                <IconButton 
+                                    edge="end" 
+                                    color="error"
+                                    onClick={() => handleRemoveMember(member.user._id)}
+                                >
                                     <Delete />
                                 </IconButton>
                             )}
@@ -99,7 +156,8 @@ const HouseholdTab = () => {
 
             <InviteMembers 
                 open={inviteDialogOpen} 
-                onClose={() => setInviteDialogOpen(false)} 
+                onClose={() => setInviteDialogOpen(false)}
+                onInviteSuccess={fetchHouseholdData}
             />
         </Box>
     );

@@ -20,7 +20,7 @@ import {
 import { Delete, ContentCopy } from '@mui/icons-material';
 import api from '../../services/api';
 
-const InviteMembers = ({ open, onClose }) => {
+const InviteMembers = ({ open, onClose, onInviteSuccess }) => {
     const [email, setEmail] = useState('');
     const [inviteUrl, setInviteUrl] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -50,13 +50,16 @@ const InviteMembers = ({ open, onClose }) => {
 
         try {
             const response = await api.post('/household/invite', { email });
-            
+
             if (response.data.invitation?.inviteUrl) {
                 setInviteUrl(response.data.invitation.inviteUrl);
             }
-            
+
             setEmail('');
             fetchInvitations();
+            if (onInviteSuccess) {
+                onInviteSuccess();
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'שגיאה בשליחת הזמנה');
         } finally {
@@ -106,8 +109,8 @@ const InviteMembers = ({ open, onClose }) => {
                 </Box>
 
                 {inviteUrl && (
-                    <Alert 
-                        severity="success" 
+                    <Alert
+                        severity="success"
                         sx={{ mt: 3 }}
                         action={
                             <IconButton
@@ -123,10 +126,10 @@ const InviteMembers = ({ open, onClose }) => {
                         <Typography variant="body2" sx={{ mb: 1 }}>
                             העתק את הקישור ושלח אותו למשתמש:
                         </Typography>
-                        <Box 
-                            sx={{ 
-                                p: 1, 
-                                bgcolor: 'rgba(0,0,0,0.1)', 
+                        <Box
+                            sx={{
+                                p: 1,
+                                bgcolor: 'rgba(0,0,0,0.1)',
                                 borderRadius: 1,
                                 wordBreak: 'break-all',
                                 fontFamily: 'monospace',

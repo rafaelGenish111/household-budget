@@ -53,7 +53,7 @@ const JoinHousehold = () => {
 
         try {
             setLoading(true);
-            
+
             if (isAuthenticated) {
                 await api.post('/auth/accept-invitation', {
                     invitationToken: token,
@@ -65,7 +65,7 @@ const JoinHousehold = () => {
                     password: formData.password,
                     invitationToken: token,
                 });
-                
+
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
             }
