@@ -45,7 +45,7 @@ const schema = yup.object({
 
 const paymentMethods = ['מזומן', 'אשראי', 'העברה בנקאית', "צ'ק", 'אחר'];
 
-const AddTransactionDialog = ({ open, onClose, transaction }) => {
+const AddTransactionDialog = ({ open, onClose, transaction, defaultType }) => {
     const dispatch = useDispatch();
     const { categories } = useSelector((state) => state.categories);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,7 +63,7 @@ const AddTransactionDialog = ({ open, onClose, transaction }) => {
     } = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
-            type: transaction?.type || 'expense',
+            type: transaction?.type || defaultType || 'expense',
             category: transaction?.category || '',
             subcategory: transaction?.subcategory || '',
             amount: transaction?.amount || 0,

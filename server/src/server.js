@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import mongoose from 'mongoose';
 import { errorHandler } from './middleware/errorHandler.js';
+import { ensureDefaultCategories } from './middleware/ensureDefaultCategories.js';
 import { config } from './config/config.js';
 
 // Import routes
@@ -33,6 +34,8 @@ async function ensureDbConnected() {
     isConnecting = true;
     try {
         await connectDB();
+        // וודא שקטגוריות ברירת מחדל קיימות
+        await ensureDefaultCategories();
     } catch (e) {
         console.error('DB connect error (lazy):', e.message);
     } finally {

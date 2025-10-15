@@ -41,6 +41,7 @@ const TransactionsList = () => {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editTransaction, setEditTransaction] = useState(null);
+    const [dialogDefaultType, setDialogDefaultType] = useState('expense');
     const [filters, setFilters] = useState({
         type: searchParams.get('type') || '',
         category: '',
@@ -97,6 +98,19 @@ const TransactionsList = () => {
 
     const handleEdit = (transaction) => {
         setEditTransaction(transaction);
+        setDialogDefaultType(transaction.type);
+        setDialogOpen(true);
+    };
+
+    const handleAddExpense = () => {
+        setEditTransaction(null);
+        setDialogDefaultType('expense');
+        setDialogOpen(true);
+    };
+
+    const handleAddIncome = () => {
+        setEditTransaction(null);
+        setDialogDefaultType('income');
         setDialogOpen(true);
     };
 
@@ -124,12 +138,17 @@ const TransactionsList = () => {
                 <Button
                     variant="contained"
                     startIcon={<Add />}
-                    onClick={() => {
-                        setEditTransaction(null);
-                        setDialogOpen(true);
-                    }}
+                    onClick={handleAddExpense}
                 >
-                    הוסף תנועה
+                    הוסף הוצאה
+                </Button>
+                <Button
+                    variant="outlined"
+                    startIcon={<Add />}
+                    onClick={handleAddIncome}
+                    sx={{ ml: 1 }}
+                >
+                    הוסף הכנסה
                 </Button>
             </Box>
 
@@ -267,6 +286,7 @@ const TransactionsList = () => {
                 open={dialogOpen}
                 onClose={handleDialogClose}
                 transaction={editTransaction}
+                defaultType={dialogDefaultType}
             />
         </Box>
     );

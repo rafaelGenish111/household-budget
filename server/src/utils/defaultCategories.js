@@ -56,6 +56,30 @@ export const defaultCategories = [
         isDefault: true,
     },
     {
+        name: 'מגורים',
+        type: 'expense',
+        subcategories: ['משכנתא', 'שכירות', 'ועד בית', 'תיקונים', 'ביטוח דירה', 'אחר'],
+        icon: '🏠',
+        color: '#ffd93d',
+        isDefault: true,
+    },
+    {
+        name: 'מתנות',
+        type: 'expense',
+        subcategories: ['ימי הולדת', 'חגים', 'אירועים', 'תרומות', 'אחר'],
+        icon: '🎁',
+        color: '#ff6bcb',
+        isDefault: true,
+    },
+    {
+        name: 'הוצאות חד פעמיות',
+        type: 'expense',
+        subcategories: ['ציוד', 'שיפוצים', 'נסיעות', 'רכישות גדולות', 'אחר'],
+        icon: '💎',
+        color: '#b19cd9',
+        isDefault: true,
+    },
+    {
         name: 'אחר',
         type: 'expense',
         subcategories: ['שונות'],
@@ -66,7 +90,7 @@ export const defaultCategories = [
     {
         name: 'משכורת',
         type: 'income',
-        subcategories: ['משכורת ראשית', 'משכורת נוספת', 'בונוס'],
+        subcategories: ['משכורת ראשית', 'משכורת נוספת', 'בונוס', 'שעות נוספות'],
         icon: '💰',
         color: '#4caf50',
         isDefault: true,
@@ -74,7 +98,7 @@ export const defaultCategories = [
     {
         name: 'השקעות',
         type: 'income',
-        subcategories: ['דיבידנדים', 'ריבית', 'רווחי הון'],
+        subcategories: ['דיבידנדים', 'ריבית', 'רווחי הון', 'קריפטו'],
         icon: '📈',
         color: '#8bc34a',
         isDefault: true,
@@ -82,7 +106,7 @@ export const defaultCategories = [
     {
         name: 'הכנסה אחרת',
         type: 'income',
-        subcategories: ['מתנות', 'החזרי מס', 'שונות'],
+        subcategories: ['מתנות', 'החזרי מס', 'פרילנס', 'שונות'],
         icon: '💵',
         color: '#66bb6a',
         isDefault: true,

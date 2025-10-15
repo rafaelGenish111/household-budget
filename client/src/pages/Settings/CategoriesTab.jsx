@@ -9,16 +9,16 @@ import {
     IconButton,
     Chip,
     Button,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    MenuItem,
     Alert,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
-import { fetchCategories, deleteCategory } from '../../store/slices/categoriesSlice';
+import {
+    fetchCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+} from '../../store/slices/categoriesSlice';
+import CategoryDialog from '../../components/dialogs/CategoryDialog';
 
 const CategoriesTab = () => {
     const dispatch = useDispatch();
@@ -47,6 +47,16 @@ const CategoriesTab = () => {
         }
         setSelectedCategory(category);
         setDialogOpen(true);
+    };
+
+    const handleSave = async (categoryData) => {
+        if (selectedCategory) {
+            await dispatch(updateCategory({ id: selectedCategory._id, data: categoryData }));
+        } else {
+            await dispatch(createCategory(categoryData));
+        }
+        setDialogOpen(false);
+        setSelectedCategory(null);
     };
 
     const customCategories = categories.filter((cat) => !cat.isDefault);
@@ -103,7 +113,12 @@ const CategoriesTab = () => {
                                 }
                             >
                                 <ListItemText
-                                    primary={category.name}
+                                    primary={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <span>{category.icon}</span>
+                                            <span>{category.name}</span>
+                                        </Box>
+                                    }
                                     secondary={`${category.subcategories?.length || 0} תתי-קטגוריות`}
                                 />
                                 <Chip
@@ -126,7 +141,12 @@ const CategoriesTab = () => {
                     {defaultCategories.map((category) => (
                         <ListItem key={category._id}>
                             <ListItemText
-                                primary={category.name}
+                                primary={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <span>{category.icon}</span>
+                                        <span>{category.name}</span>
+                                    </Box>
+                                }
                                 secondary={`${category.subcategories?.length || 0} תתי-קטגוריות`}
                             />
                             <Chip
@@ -141,36 +161,15 @@ const CategoriesTab = () => {
                 </List>
             </Box>
 
-            {/* Add/Edit Dialog - placeholder */}
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-                <DialogTitle>
-                    {selectedCategory ? 'עריכת קטגוריה' : 'הוספת קטגוריה חדשה'}
-                </DialogTitle>
-                <DialogContent>
-                    <TextField
-                        fullWidth
-                        label="שם הקטגוריה"
-                        margin="normal"
-                        defaultValue={selectedCategory?.name || ''}
-                    />
-                    <TextField
-                        fullWidth
-                        select
-                        label="סוג"
-                        margin="normal"
-                        defaultValue={selectedCategory?.type || 'expense'}
-                    >
-                        <MenuItem value="income">הכנסה</MenuItem>
-                        <MenuItem value="expense">הוצאה</MenuItem>
-                    </TextField>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDialogOpen(false)}>ביטול</Button>
-                    <Button variant="contained" onClick={() => setDialogOpen(false)}>
-                        שמור
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <CategoryDialog
+                open={dialogOpen}
+                onClose={() => {
+                    setDialogOpen(false);
+                    setSelectedCategory(null);
+                }}
+                onSave={handleSave}
+                category={selectedCategory}
+            />
         </Box>
     );
 };

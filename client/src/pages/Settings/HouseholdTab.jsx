@@ -128,8 +128,8 @@ const HouseholdTab = () => {
                                 sx={{ mr: 1 }}
                             />
                             {member.role !== 'admin' && (
-                                <IconButton 
-                                    edge="end" 
+                                <IconButton
+                                    edge="end"
                                     color="error"
                                     onClick={() => handleRemoveMember(member.user._id)}
                                 >
@@ -154,8 +154,8 @@ const HouseholdTab = () => {
                 </Button>
             </Box>
 
-            <InviteMembers 
-                open={inviteDialogOpen} 
+            <InviteMembers
+                open={inviteDialogOpen}
                 onClose={() => setInviteDialogOpen(false)}
                 onInviteSuccess={fetchHouseholdData}
             />
