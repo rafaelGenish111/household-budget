@@ -18,6 +18,7 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
+import JoinHousehold from './pages/JoinHousehold';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard/Dashboard';
 import TransactionsList from './pages/Transactions/TransactionsList';
@@ -54,6 +55,7 @@ const AppContent = () => {
                         <Route path="/register" element={<Register />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/reset-password/:token" element={<ResetPassword />} />
+                        <Route path="/join/:token" element={<JoinHousehold />} />
 
                         {/* Protected Routes */}
                         <Route

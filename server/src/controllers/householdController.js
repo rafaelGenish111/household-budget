@@ -1,5 +1,7 @@
 import Household from '../models/Household.js';
 import User from '../models/User.js';
+import Invitation from '../models/Invitation.js';
+import { sendHouseholdInviteEmail } from '../utils/emailService.js';
 
 // @desc    Get household details
 // @route   GET /api/household
@@ -75,7 +77,7 @@ export const updateHousehold = async (req, res) => {
 
 // @desc    Invite user to household
 // @route   POST /api/household/invite
-// @access  Private
+// @access  Private (Admin only)
 export const inviteUser = async (req, res) => {
     try {
         const { email } = req.body;
@@ -101,43 +103,51 @@ export const inviteUser = async (req, res) => {
             });
         }
 
-        // Find user by email
-        const userToInvite = await User.findOne({ email });
-
-        if (!userToInvite) {
-            return res.status(404).json({
-                success: false,
-                message: 'משתמש עם אימייל זה לא נמצא',
-            });
-        }
-
-        // Check if user is already a member
-        const alreadyMember = household.members.some(
-            (m) => m.user.toString() === userToInvite._id.toString()
-        );
-
-        if (alreadyMember) {
+        // Check if email is already a member
+        const existingUser = await User.findOne({ email });
+        if (existingUser && existingUser.household?.toString() === household._id.toString()) {
             return res.status(400).json({
                 success: false,
                 message: 'משתמש זה כבר חבר במשק הבית',
             });
         }
 
-        // Add user to household
-        household.members.push({
-            user: userToInvite._id,
-            role: 'member',
+        // Check if there's a pending invitation
+        const existingInvitation = await Invitation.findOne({
+            email,
+            household: household._id,
+            status: 'pending',
+            expiresAt: { $gt: new Date() },
         });
-        await household.save();
 
-        // Update user's household
-        userToInvite.household = household._id;
-        await userToInvite.save();
+        if (existingInvitation) {
+            return res.status(400).json({
+                success: false,
+                message: 'כבר נשלחה הזמנה למייל זה',
+            });
+        }
 
-        res.json({
+        // Create new invitation
+        const token = Invitation.createToken();
+        const invitation = await Invitation.create({
+            household: household._id,
+            email,
+            invitedBy: req.user._id,
+            token,
+        });
+
+        // Send email (or display in console)
+        const emailResult = await sendHouseholdInviteEmail(email, household.name, token);
+
+        res.status(201).json({
             success: true,
-            message: 'משתמש הוזמן בהצלחה',
-            household,
+            message: emailResult.message,
+            invitation: {
+                id: invitation._id,
+                email: invitation.email,
+                expiresAt: invitation.expiresAt,
+                inviteUrl: emailResult.inviteUrl,
+            },
         });
     } catch (error) {
         res.status(500).json({
@@ -192,6 +202,68 @@ export const removeMember = async (req, res) => {
         res.json({
             success: true,
             message: 'משתמש הוסר בהצלחה',
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+// @desc    Get pending invitations
+// @route   GET /api/household/invitations
+// @access  Private (Admin only)
+export const getInvitations = async (req, res) => {
+    try {
+        const invitations = await Invitation.find({
+            household: req.user.household,
+            status: 'pending',
+            expiresAt: { $gt: new Date() },
+        })
+            .populate('invitedBy', 'name email')
+            .sort('-createdAt');
+
+        res.json({
+            success: true,
+            invitations,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+// @desc    Cancel invitation
+// @route   DELETE /api/household/invitation/:invitationId
+// @access  Private (Admin only)
+export const cancelInvitation = async (req, res) => {
+    try {
+        const { invitationId } = req.params;
+
+        const invitation = await Invitation.findById(invitationId);
+        if (!invitation) {
+            return res.status(404).json({
+                success: false,
+                message: 'הזמנה לא נמצאה',
+            });
+        }
+
+        if (invitation.household.toString() !== req.user.household.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'אין לך הרשאה לבטל הזמנה זו',
+            });
+        }
+
+        invitation.status = 'cancelled';
+        await invitation.save();
+
+        res.json({
+            success: true,
+            message: 'הזמנה בוטלה בהצלחה',
         });
     } catch (error) {
         res.status(500).json({

@@ -54,44 +54,73 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
 export const sendHouseholdInviteEmail = async (email, householdName, inviteToken) => {
     try {
         const transporter = createTransporter();
+        const inviteUrl = `${process.env.CLIENT_URL}/join/${inviteToken}`;
 
         if (!transporter) {
-            console.log('📧 שירות אימייל לא מוגדר - הזמנה לא נשלחה');
-            console.log('🔗 קישור להצטרפות:', `${process.env.CLIENT_URL}/join-household/${inviteToken}`);
-            return { success: true, message: 'קישור להצטרפות נוצר' };
+            // 📧 מצב ידני - הצגה ב-console
+            console.log('\n' + '='.repeat(60));
+            console.log('📧 הזמנה חדשה למשק בית');
+            console.log('='.repeat(60));
+            console.log(`👤 אימייל המוזמן: ${email}`);
+            console.log(`🏠 שם משק הבית: ${householdName}`);
+            console.log(`🔗 קישור להצטרפות:\n   ${inviteUrl}`);
+            console.log('='.repeat(60));
+            console.log('💡 העתק את הקישור ושלח אותו למשתמש ידנית');
+            console.log('='.repeat(60) + '\n');
+            
+            return { 
+                success: true, 
+                message: 'קישור להצטרפות נוצר',
+                inviteUrl
+            };
         }
 
-        const inviteUrl = `${process.env.CLIENT_URL}/join-household/${inviteToken}`;
-
+        // אם יש transporter - שליחת מייל אמיתי
         const mailOptions = {
-            from: process.env.EMAIL_FROM,
+            from: process.env.EMAIL_FROM || 'noreply@household-budget.com',
             to: email,
             subject: `הזמנה להצטרפות למשק בית - ${householdName}`,
             html: `
-        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right;">
-          <h2>שלום!</h2>
-          <p>הוזמנת להצטרף למשק הבית "${householdName}" במערכת ניהול משק בית.</p>
-          <p>לחץ על הקישור הבא להצטרפות:</p>
-          <a href="${inviteUrl}" style="background-color: #4caf50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-            הצטרף למשק בית
-          </a>
-          <p>הקישור תקף ל-7 ימים.</p>
-          <p>אם לא ציפית להזמנה זו, תוכל להתעלם מהאימייל הזה.</p>
-          <hr>
-          <p style="font-size: 12px; color: #666;">
-            מערכת ניהול משק בית
-          </p>
-        </div>
-      `
+                <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2196f3;">שלום!</h2>
+                    <p style="font-size: 16px;">הוזמנת להצטרף למשק הבית <strong>"${householdName}"</strong> במערכת ניהול משק בית.</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${inviteUrl}" 
+                           style="background-color: #4caf50; 
+                                  color: white; 
+                                  padding: 15px 30px; 
+                                  text-decoration: none; 
+                                  border-radius: 5px;
+                                  font-size: 18px;
+                                  display: inline-block;">
+                            הצטרף למשק בית
+                        </a>
+                    </div>
+                    
+                    <p style="color: #666;">הקישור תקף ל-7 ימים.</p>
+                    <p style="color: #666; font-size: 14px;">אם לא ציפית להזמנה זו, תוכל להתעלם מהאימייל הזה.</p>
+                    
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                    <p style="font-size: 12px; color: #999; text-align: center;">
+                        מערכת ניהול משק בית
+                    </p>
+                </div>
+            `
         };
 
         await transporter.sendMail(mailOptions);
-        return { success: true, message: 'הזמנה נשלחה בהצלחה' };
+        return { success: true, message: 'אימייל נשלח בהצלחה' };
 
     } catch (error) {
-        console.error('שגיאה בשליחת הזמנה:', error);
-        return { success: false, message: 'שגיאה בשליחת הזמנה' };
+        console.error('❌ שגיאה בשליחת אימייל:', error);
+        return { success: false, message: 'שגיאה בשליחת אימייל' };
     }
+};
+
+// ייצוא נוסף
+export const isEmailServiceEnabled = () => {
+    return createTransporter() !== null;
 };
 
 // שליחת התראה על חריגה מתקציב

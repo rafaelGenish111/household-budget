@@ -5,6 +5,9 @@ import {
     getMe,
     forgotPassword,
     resetPassword,
+    verifyInvitation,
+    registerWithInvitation,
+    acceptInvitation,
 } from '../controllers/authController.js';
 import { auth } from '../middleware/auth.js';
 
@@ -15,6 +18,9 @@ router.post('/login', login);
 router.get('/me', auth, getMe);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
+router.get('/invitation/:token', verifyInvitation);
+router.post('/register-with-invitation', registerWithInvitation);
+router.post('/accept-invitation', auth, acceptInvitation);
 
 export default router;
 

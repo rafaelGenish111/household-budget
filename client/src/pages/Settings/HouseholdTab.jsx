@@ -14,12 +14,13 @@ import {
 } from '@mui/material';
 import { Delete, PersonAdd } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
+import InviteMembers from '../../components/Household/InviteMembers';
 
 const HouseholdTab = () => {
     const { user } = useSelector((state) => state.auth);
     const [householdName, setHouseholdName] = useState('משק הבית שלי');
-    const [inviteEmail, setInviteEmail] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
     // Mock members - in production, fetch from API
     const members = [
@@ -28,14 +29,6 @@ const HouseholdTab = () => {
 
     const handleSave = () => {
         setSuccessMessage('שם משק הבית עודכן בהצלחה!');
-        setTimeout(() => setSuccessMessage(''), 3000);
-    };
-
-    const handleInvite = () => {
-        if (!inviteEmail) return;
-        // TODO: Implement invite logic
-        setSuccessMessage(`הזמנה נשלחה ל-${inviteEmail}`);
-        setInviteEmail('');
         setTimeout(() => setSuccessMessage(''), 3000);
     };
 
@@ -95,23 +88,19 @@ const HouseholdTab = () => {
                 <Typography variant="h6" gutterBottom>
                     הזמן חבר חדש
                 </Typography>
-                <Box display="flex" gap={2}>
-                    <TextField
-                        fullWidth
-                        label="אימייל"
-                        type="email"
-                        value={inviteEmail}
-                        onChange={(e) => setInviteEmail(e.target.value)}
-                    />
-                    <Button
-                        variant="contained"
-                        startIcon={<PersonAdd />}
-                        onClick={handleInvite}
-                    >
-                        הזמן
-                    </Button>
-                </Box>
+                <Button
+                    variant="contained"
+                    startIcon={<PersonAdd />}
+                    onClick={() => setInviteDialogOpen(true)}
+                >
+                    הזמן חבר משק בית
+                </Button>
             </Box>
+
+            <InviteMembers 
+                open={inviteDialogOpen} 
+                onClose={() => setInviteDialogOpen(false)} 
+            />
         </Box>
     );
 };
