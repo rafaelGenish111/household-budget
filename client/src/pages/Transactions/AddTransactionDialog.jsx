@@ -67,10 +67,10 @@ const AddTransactionDialog = ({ open, onClose, transaction, defaultType }) => {
             category: transaction?.category || '',
             subcategory: transaction?.subcategory || '',
             amount: transaction?.amount || 0,
-            date: transaction?.date ? 
-                (transaction.date && !isNaN(new Date(transaction.date).getTime()) ? 
-                    format(new Date(transaction.date), 'yyyy-MM-dd') : 
-                    format(new Date(), 'yyyy-MM-dd')) : 
+            date: transaction?.date ?
+                (transaction.date && !isNaN(new Date(transaction.date).getTime()) ?
+                    format(new Date(transaction.date), 'yyyy-MM-dd') :
+                    format(new Date(), 'yyyy-MM-dd')) :
                 format(new Date(), 'yyyy-MM-dd'),
             description: transaction?.description || '',
             paymentMethod: transaction?.paymentMethod || 'מזומן',
@@ -93,8 +93,8 @@ const AddTransactionDialog = ({ open, onClose, transaction, defaultType }) => {
                     category: transaction.category,
                     subcategory: transaction.subcategory || '',
                     amount: transaction.amount,
-                    date: transaction.date && !isNaN(new Date(transaction.date).getTime()) ? 
-                        format(new Date(transaction.date), 'yyyy-MM-dd') : 
+                    date: transaction.date && !isNaN(new Date(transaction.date).getTime()) ?
+                        format(new Date(transaction.date), 'yyyy-MM-dd') :
                         format(new Date(), 'yyyy-MM-dd'),
                     description: transaction.description || '',
                     paymentMethod: transaction.paymentMethod,

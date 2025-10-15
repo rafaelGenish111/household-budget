@@ -55,7 +55,7 @@ app.use(
     cors({
         origin: [
             'http://localhost:5173',
-            'http://localhost:3000', 
+            'http://localhost:3000',
             'https://household-budget-client.vercel.app',
             'https://household-budget-client-git-main-rafaelgenish111s-projects.vercel.app',
             /^https:\/\/household-budget-client.*\.vercel\.app$/ // כל ה-subdomains של Vercel
@@ -63,8 +63,8 @@ app.use(
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
         allowedHeaders: [
-            'Content-Type', 
-            'Authorization', 
+            'Content-Type',
+            'Authorization',
             'x-auth-token',
             'Accept',
             'Origin',
@@ -76,9 +76,9 @@ app.use(
 
 // Health first (ללא תלות ב-DB)
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        success: true, 
-        message: 'Server is running', 
+    res.json({
+        success: true,
+        message: 'Server is running',
         timestamp: new Date().toISOString(),
         db: {
             readyState: mongoose.connection.readyState, // 0=disconnected,1=connected,2=connecting,3=disconnecting
@@ -148,8 +148,14 @@ app.use(errorHandler);
 // ל-Local/Production רגיל כן נפעיל listen
 if (!process.env.VERCEL) {
     const PORT = process.env.PORT || config.port;
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, async () => {
         console.log(`🚀 Server running in ${config.nodeEnv} mode on port ${PORT}`);
+        // וודא שקטגוריות ברירת מחדל קיימות בהתחלה
+        try {
+            await ensureDefaultCategories();
+        } catch (error) {
+            console.error('Error ensuring default categories on startup:', error);
+        }
     });
 
     // Handle unhandled promise rejections

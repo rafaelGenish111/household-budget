@@ -4,7 +4,7 @@ import { defaultCategories } from '../utils/defaultCategories.js';
 export const ensureDefaultCategories = async () => {
     try {
         const existingDefaults = await Category.find({ isDefault: true });
-        
+
         if (existingDefaults.length === 0) {
             await Category.insertMany(defaultCategories);
             console.log('✅ Default categories created');
@@ -14,7 +14,7 @@ export const ensureDefaultCategories = async () => {
             const newCategories = defaultCategories.filter(
                 cat => !existingNames.includes(cat.name)
             );
-            
+
             if (newCategories.length > 0) {
                 await Category.insertMany(newCategories);
                 console.log(`✅ Added ${newCategories.length} new default categories`);
