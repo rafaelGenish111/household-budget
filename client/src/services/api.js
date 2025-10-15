@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { queueRequest, processQueue } from '../utils/offlineQueue';
 
 // קביעת כתובת השרת
 const getBaseURL = () => {
@@ -37,6 +38,16 @@ const api = axios.create({
     },
 });
 
+// Process offline queue on load
+if (navigator.onLine) {
+    processQueue(api).catch(console.error);
+}
+
+// Listen for online event
+window.addEventListener('online', () => {
+    processQueue(api).catch(console.error);
+});
+
 // Add token to requests
 api.interceptors.request.use(
     (config) => {
@@ -55,11 +66,28 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Queue request if offline
+        if (!navigator.onLine) {
+            const originalRequest = error.config;
+            queueRequest({
+                method: originalRequest.method,
+                url: originalRequest.url,
+                data: originalRequest.data,
+            });
+
+            return Promise.reject({
+                ...error,
+                isOffline: true,
+                message: 'הבקשה נשמרה ותבוצע כשתתחבר לאינטרנט',
+            });
+        }
+
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';
         }
+
         return Promise.reject(error);
     }
 );

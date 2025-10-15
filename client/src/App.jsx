@@ -9,6 +9,10 @@ import { useSelector } from 'react-redux';
 import { store } from './store/store';
 import { getTheme } from './theme/theme';
 
+// PWA Components
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import OfflineIndicator from './components/OfflineIndicator';
+
 // Pages
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
@@ -81,6 +85,8 @@ const AppContent = () => {
 function App() {
     return (
         <Provider store={store}>
+            <PWAInstallPrompt />
+            <OfflineIndicator />
             <AppContent />
         </Provider>
     );
