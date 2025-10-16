@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import api from '../../services/api';
-import MultiImageReceiptScanner from './MultiImageReceiptScanner';
+// import MultiImageReceiptScanner from './MultiImageReceiptScanner'; // זמין בקרוב
 
 export default function ReceiptScanner({ open, onClose, onScanComplete }) {
     const [scanning, setScanning] = useState(false);
@@ -173,10 +173,12 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                             <Button
                                 variant="contained"
                                 startIcon={<ViewInAr />}
-                                onClick={() => setMultiImageMode(true)}
+                                onClick={() => {
+                                    alert('מערכת סריקת חשבוניות ארוכות תהיה זמינה בקרוב! 🚀\n\nבינתיים, השתמש בסריקה הרגילה וצלם את החשבונית בחלקים.');
+                                }}
                                 sx={{ flex: 1 }}
                             >
-                                📸 חשבונית ארוכה
+                                📸 חשבונית ארוכה (בקרוב)
                             </Button>
                         </Box>
 
@@ -439,15 +441,15 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
             </DialogActions>
         </Dialog>
 
-        {/* Multi-Image Receipt Scanner */}
-        <MultiImageReceiptScanner
-            open={multiImageMode}
-            onClose={() => setMultiImageMode(false)}
-            onScanComplete={(multiImageResult) => {
-                onScanComplete(multiImageResult);
-                setMultiImageMode(false);
-            }}
-        />
+        {/* Multi-Image Receipt Scanner - זמין בקרוב */ }
+    {/* <MultiImageReceiptScanner
+        open={multiImageMode}
+        onClose={() => setMultiImageMode(false)}
+        onScanComplete={(multiImageResult) => {
+            onScanComplete(multiImageResult);
+            setMultiImageMode(false);
+        }}
+    /> */}
     );
 }
 
