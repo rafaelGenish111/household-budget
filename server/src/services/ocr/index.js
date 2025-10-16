@@ -405,8 +405,3 @@ export async function testSystem() {
 
 // ייצוא הפונקציה הראשית עם שם תואם לקוד הקיים
 export { scanReceiptEnhanced as scanReceipt };
-
-// ייצוא ישיר של הפונקציה הראשית
-export async function scanReceipt(fileBuffer, mimeType = 'image/jpeg', options = {}) {
-    return await scanReceiptEnhanced(fileBuffer, mimeType, options);
-}
