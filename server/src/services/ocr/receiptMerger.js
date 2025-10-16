@@ -43,7 +43,6 @@ export function mergeReceipt(session) {
  * @returns {Object} - תוצאות המיזוג
  */
 export function mergeByOverlap(images) {
-    const detector = { findOverlap };
     let allItems = [];
     let allLines = [];
     let totalConfidence = 0;
@@ -55,7 +54,7 @@ export function mergeByOverlap(images) {
     
     // מזג כל תמונה עם הקודמת
     for (let i = 1; i < images.length; i++) {
-        const overlap = detector.findOverlap(
+        const overlap = findOverlap(
             images[i - 1].parsedData,
             images[i].parsedData
         );

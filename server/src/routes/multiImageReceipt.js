@@ -5,17 +5,14 @@
 import express from 'express';
 import multer from 'multer';
 import {
-    createReceiptSession,
+    createSession,
     addImageToSession,
-    completeReceiptSession,
-    cancelReceiptSession,
-    getReceiptSession,
+    completeSession,
+    cancelSession,
     getActiveSessions,
-    getCompletedSessions,
-    deleteReceiptSession,
-    getSessionImage
+    getCompletedSession
 } from '../controllers/multiImageReceiptController.js';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -36,31 +33,19 @@ const upload = multer({
 });
 
 // כל ה-routes דורשים אימות
-router.use(auth);
+router.use(protect);
 
 /**
  * POST /api/multi-receipt/sessions
  * יוצר סשן חדש לסריקת חשבונית רב-תמונתית
  */
-router.post('/sessions', createReceiptSession);
+router.post('/sessions', createSession);
 
 /**
  * GET /api/multi-receipt/sessions/active
  * מקבל רשימת סשנים פעילים
  */
 router.get('/sessions/active', getActiveSessions);
-
-/**
- * GET /api/multi-receipt/sessions/completed
- * מקבל רשימת סשנים שהושלמו
- */
-router.get('/sessions/completed', getCompletedSessions);
-
-/**
- * GET /api/multi-receipt/sessions/:sessionId
- * מקבל פרטי סשן ספציפי
- */
-router.get('/sessions/:sessionId', getReceiptSession);
 
 /**
  * POST /api/multi-receipt/sessions/:sessionId/images
@@ -72,24 +57,12 @@ router.post('/sessions/:sessionId/images', upload.single('image'), addImageToSes
  * POST /api/multi-receipt/sessions/:sessionId/complete
  * מסיים את הסשן ומבצע מיזוג
  */
-router.post('/sessions/:sessionId/complete', completeReceiptSession);
+router.post('/sessions/:sessionId/complete', completeSession);
 
 /**
- * POST /api/multi-receipt/sessions/:sessionId/cancel
- * מבטל סשן קיים
+ * GET /api/multi-receipt/sessions/:sessionId/completed
+ * מקבל סשן שהושלם
  */
-router.post('/sessions/:sessionId/cancel', cancelReceiptSession);
-
-/**
- * DELETE /api/multi-receipt/sessions/:sessionId
- * מוחק סשן קיים
- */
-router.delete('/sessions/:sessionId', deleteReceiptSession);
-
-/**
- * GET /api/multi-receipt/sessions/:sessionId/images/:imageId
- * מקבל תמונה ספציפית מסשן
- */
-router.get('/sessions/:sessionId/images/:imageId', getSessionImage);
+router.get('/sessions/:sessionId/completed', getCompletedSession);
 
 export default router;

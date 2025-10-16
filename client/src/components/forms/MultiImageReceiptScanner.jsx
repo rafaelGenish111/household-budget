@@ -134,7 +134,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
             // עדכון מצב הסשן
             setSession(prev => ({
                 ...prev,
-                imageCount: prev.imageCount + 1,
+                imageCount: response.data.imageCount,
                 status: response.data.sessionStatus
             }));
             
@@ -206,7 +206,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                 validation,
                 confidence,
                 sessionId: session.sessionId,
-                imageCount: session.imageCount,
+                imageCount: response.data.imageCount,
                 method: 'multi-image'
             });
             
