@@ -353,13 +353,6 @@ export function getSystemStatus() {
     };
 }
 
-/**
- * מחזיר טיפים לצילום טוב יותר
- * @returns {Array<string>} - רשימת טיפים
- */
-export function getPhotographyTips() {
-    return getPhotographyTips();
-}
 
 /**
  * מבצע בדיקה מהירה של המערכת
