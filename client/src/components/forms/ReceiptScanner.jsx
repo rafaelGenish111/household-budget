@@ -115,6 +115,7 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
     };
 
     return (
+        <>
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth dir="rtl">
             <DialogTitle>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -441,15 +442,16 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
             </DialogActions>
         </Dialog>
 
-        {/* Multi-Image Receipt Scanner - זמין בקרוב */ }
-    {/* <MultiImageReceiptScanner
-        open={multiImageMode}
-        onClose={() => setMultiImageMode(false)}
-        onScanComplete={(multiImageResult) => {
-            onScanComplete(multiImageResult);
-            setMultiImageMode(false);
-        }}
-    /> */}
+        {/* Multi-Image Receipt Scanner - זמין בקרוב */}
+        {/* <MultiImageReceiptScanner
+            open={multiImageMode}
+            onClose={() => setMultiImageMode(false)}
+            onScanComplete={(multiImageResult) => {
+                onScanComplete(multiImageResult);
+                setMultiImageMode(false);
+            }}
+        /> */}
+        </>
     );
 }
 
