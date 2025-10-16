@@ -22,15 +22,18 @@ import {
     CheckCircle,
     Warning,
     PictureAsPdf,
+    ViewInAr,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import api from '../../services/api';
+import MultiImageReceiptScanner from './MultiImageReceiptScanner';
 
 export default function ReceiptScanner({ open, onClose, onScanComplete }) {
     const [scanning, setScanning] = useState(false);
     const [preview, setPreview] = useState(null);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
+    const [multiImageMode, setMultiImageMode] = useState(false);
 
     const onDrop = async (acceptedFiles) => {
         if (acceptedFiles.length === 0) return;
@@ -163,9 +166,17 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                                 variant="outlined"
                                 startIcon={<CameraAlt />}
                                 onClick={handleCameraCapture}
-                                fullWidth
+                                sx={{ flex: 1 }}
                             >
-                                צלם חשבונית
+                                צלם חשבונית רגילה
+                            </Button>
+                            <Button
+                                variant="contained"
+                                startIcon={<ViewInAr />}
+                                onClick={() => setMultiImageMode(true)}
+                                sx={{ flex: 1 }}
+                            >
+                                📸 חשבונית ארוכה
                             </Button>
                         </Box>
 
@@ -427,6 +438,16 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                 <Button onClick={handleClose}>סגור</Button>
             </DialogActions>
         </Dialog>
+
+        {/* Multi-Image Receipt Scanner */}
+        <MultiImageReceiptScanner
+            open={multiImageMode}
+            onClose={() => setMultiImageMode(false)}
+            onScanComplete={(multiImageResult) => {
+                onScanComplete(multiImageResult);
+                setMultiImageMode(false);
+            }}
+        />
     );
 }
 
