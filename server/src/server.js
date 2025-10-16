@@ -74,6 +74,36 @@ app.use(
     })
 );
 
+// טיפול נוסף ב-preflight requests
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, Accept, Origin, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.status(200).end();
+});
+
+// Middleware נוסף לוודא שכל התגובות כוללות כותרות CORS
+app.use((req, res, next) => {
+    const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'https://household-budget-client.vercel.app',
+        'https://household-budget-client-git-main-rafaelgenish111s-projects.vercel.app'
+    ];
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin) || (origin && origin.match(/^https:\/\/household-budget-client.*\.vercel\.app$/))) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, Accept, Origin, X-Requested-With');
+    
+    next();
+});
+
 // Health first (ללא תלות ב-DB)
 app.get('/api/health', (req, res) => {
     res.json({
