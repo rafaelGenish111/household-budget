@@ -3,8 +3,8 @@
  * כולל בדיקות בסיסיות לכל השכבות
  */
 
-import { scanReceipt, getSystemStatus, testSystem, getPhotographyTips } from './index.js';
-import { preprocessImage, analyzeImageQuality } from './preprocessor.js';
+import { scanReceipt, getSystemStatus, testSystem } from './index.js';
+import { preprocessImage, analyzeImageQuality, getPhotographyTips } from './preprocessor.js';
 import { parseReceiptData } from './receiptParser.js';
 import { validateReceiptData } from './validator.js';
 
