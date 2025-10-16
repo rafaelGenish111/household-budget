@@ -150,11 +150,11 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                             <Typography variant="body2" color="text.secondary">
                                 תומך ב-JPG, PNG, WEBP, PDF (עד 10MB)
                             </Typography>
-                            <Chip 
-                                label="חדש: תמיכה ב-PDF! 📄" 
-                                color="success" 
-                                size="small" 
-                                sx={{ mt: 1 }} 
+                            <Chip
+                                label="חדש: תמיכה ב-PDF! 📄"
+                                color="success"
+                                size="small"
+                                sx={{ mt: 1 }}
                             />
                         </Box>
 
@@ -167,6 +167,20 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                             >
                                 צלם חשבונית
                             </Button>
+                        </Box>
+
+                        {/* טיפים לצילום טוב יותר */}
+                        <Box sx={{ mt: 3, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+                            <Typography variant="subtitle2" color="info.main" gutterBottom>
+                                💡 טיפים לצילום טוב יותר:
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                • החזק את המכשיר ישר וקבוע<br />
+                                • ודא תאורה טובה - הימנע מצללים<br />
+                                • מלא את המסגרת עם החשבונית<br />
+                                • ודא שהטקסט קריא וברור<br />
+                                • הימנע מברקים או השתקפויות
+                            </Typography>
                         </Box>
                     </Box>
                 )}
@@ -225,19 +239,55 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                         {result && (
                             <Box>
                                 <Alert
-                                    severity={result.confidence > 0.7 ? 'success' : 'warning'}
-                                    icon={result.confidence > 0.7 ? <CheckCircle /> : <Warning />}
+                                    severity={result.qualitySummary?.level === 'excellent' || result.qualitySummary?.level === 'good' ? 'success' :
+                                        result.qualitySummary?.level === 'fair' ? 'warning' : 'error'}
+                                    icon={result.qualitySummary?.level === 'excellent' || result.qualitySummary?.level === 'good' ? <CheckCircle /> : <Warning />}
                                     sx={{ mb: 2 }}
                                 >
                                     <Typography variant="subtitle2">
-                                        {result.confidence > 0.7
+                                        {result.qualitySummary?.level === 'excellent' || result.qualitySummary?.level === 'good'
                                             ? 'חשבונית נסרקה בהצלחה!'
-                                            : 'חלק מהנתונים לא זוהו - אנא בדוק'}
+                                            : result.qualitySummary?.level === 'fair'
+                                                ? 'חלק מהנתונים לא זוהו - אנא בדוק'
+                                                : 'נדרש בדיקה ידנית של הנתונים'}
                                     </Typography>
                                     <Typography variant="caption">
-                                        דיוק: {(result.confidence * 100).toFixed(0)}%
+                                        איכות: {result.qualitySummary?.label || 'לא ידוע'} ({(result.confidence * 100).toFixed(0)}%)
                                     </Typography>
+                                    {result.processingTime && (
+                                        <Typography variant="caption" display="block">
+                                            זמן עיבוד: {result.processingTime}ms
+                                        </Typography>
+                                    )}
                                 </Alert>
+
+                                {/* הצגת אזהרות והצעות */}
+                                {result.validation?.issues?.length > 0 && (
+                                    <Alert severity="error" sx={{ mb: 2 }}>
+                                        <Typography variant="subtitle2">בעיות שזוהו:</Typography>
+                                        {result.validation.issues.map((issue, idx) => (
+                                            <Typography key={idx} variant="body2">• {issue}</Typography>
+                                        ))}
+                                    </Alert>
+                                )}
+
+                                {result.validation?.warnings?.length > 0 && (
+                                    <Alert severity="warning" sx={{ mb: 2 }}>
+                                        <Typography variant="subtitle2">אזהרות:</Typography>
+                                        {result.validation.warnings.map((warning, idx) => (
+                                            <Typography key={idx} variant="body2">• {warning}</Typography>
+                                        ))}
+                                    </Alert>
+                                )}
+
+                                {result.suggestions?.length > 0 && (
+                                    <Alert severity="info" sx={{ mb: 2 }}>
+                                        <Typography variant="subtitle2">המלצות לשיפור:</Typography>
+                                        {result.suggestions.map((suggestion, idx) => (
+                                            <Typography key={idx} variant="body2">• {suggestion}</Typography>
+                                        ))}
+                                    </Alert>
+                                )}
 
                                 <Stack spacing={2}>
                                     <Box>
@@ -258,6 +308,16 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                                         <Typography variant="h6" color="primary">
                                             {result.total ? `₪${result.total.toFixed(2)}` : 'לא זוהה'}
                                         </Typography>
+                                        {result.itemsTotal && result.itemsTotal > 0 && (
+                                            <Typography variant="caption" color="text.secondary">
+                                                סכום פריטים: ₪{result.itemsTotal.toFixed(2)}
+                                                {result.total && Math.abs(result.total - result.itemsTotal) > 0.01 && (
+                                                    <span style={{ color: result.validation?.warnings?.length > 0 ? '#f57c00' : '#4caf50' }}>
+                                                        {' '}(הפרש: ₪{Math.abs(result.total - result.itemsTotal).toFixed(2)})
+                                                    </span>
+                                                )}
+                                            </Typography>
+                                        )}
                                     </Box>
 
                                     <Box>
@@ -267,6 +327,16 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                                         <Typography variant="body1">
                                             {result.businessName || 'לא זוהה'}
                                         </Typography>
+                                        {result.businessInfo?.taxId && (
+                                            <Typography variant="caption" color="text.secondary">
+                                                ח.ע.מ: {result.businessInfo.taxId}
+                                            </Typography>
+                                        )}
+                                        {result.businessInfo?.phone && (
+                                            <Typography variant="caption" color="text.secondary" display="block">
+                                                טלפון: {result.businessInfo.phone}
+                                            </Typography>
+                                        )}
                                     </Box>
 
                                     <Box>
@@ -295,13 +365,44 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                                                             borderColor: 'divider',
                                                         }}
                                                     >
-                                                        <Typography variant="body2">{item.name}</Typography>
+                                                        <Typography variant="body2">{item.description || item.name}</Typography>
                                                         <Typography variant="body2">₪{item.price.toFixed(2)}</Typography>
                                                     </Box>
                                                 ))}
                                                 {result.items.length > 10 && (
                                                     <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
                                                         ועוד {result.items.length - 10} פריטים...
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        </Box>
+                                    )}
+
+                                    {/* מידע טכני למשתמשים מתקדמים */}
+                                    {result.scanInfo && (
+                                        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                                            <Typography variant="caption" color="text.secondary">
+                                                מידע טכני
+                                            </Typography>
+                                            <Box sx={{ mt: 1 }}>
+                                                {result.scanInfo.preprocessingApplied && (
+                                                    <Typography variant="caption" color="text.secondary" display="block">
+                                                        ✓ עיבוד מקדים בוצע
+                                                    </Typography>
+                                                )}
+                                                {result.scanInfo.attempt > 1 && (
+                                                    <Typography variant="caption" color="text.secondary" display="block">
+                                                        ניסיון {result.scanInfo.attempt}
+                                                    </Typography>
+                                                )}
+                                                {result.fallback && (
+                                                    <Typography variant="caption" color="warning.main" display="block">
+                                                        ⚠️ מצב fallback - Vision API לא זמין
+                                                    </Typography>
+                                                )}
+                                                {result.error && (
+                                                    <Typography variant="caption" color="error.main" display="block">
+                                                        ❌ שגיאה בסריקה
                                                     </Typography>
                                                 )}
                                             </Box>

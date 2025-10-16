@@ -1,0 +1,62 @@
+{
+    "name": "household-budget-ocr-enhanced",
+    "version": "2.0.0",
+    "description": "מערכת OCR משופרת לסריקת חשבוניות ישראליות עם תמיכה בעברית ואנגלית",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "node test.js",
+        "test:ocr": "node test.js",
+        "test:preprocessing": "node -e \"import('./test.js').then(m => m.testImagePreprocessing())\"",
+        "test:parsing": "node -e \"import('./test.js').then(m => m.testReceiptParsing())\"",
+        "start": "node index.js",
+        "dev": "node --watch index.js"
+    },
+    "keywords": [
+        "ocr",
+        "receipt",
+        "scanner",
+        "hebrew",
+        "israeli",
+        "vision-api",
+        "google-cloud",
+        "receipt-parsing",
+        "image-processing"
+    ],
+    "author": "Household Budget Team",
+    "license": "MIT",
+    "dependencies": {
+        "@google-cloud/vision": "^4.0.0",
+        "sharp": "^0.33.0",
+        "pdf-parse": "^1.1.1"
+    },
+    "devDependencies": {
+        "jest": "^29.0.0",
+        "eslint": "^8.0.0"
+    },
+    "engines": {
+        "node": ">=16.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/your-org/household-budget.git",
+        "directory": "server/src/services/ocr"
+    },
+    "bugs": {
+        "url": "https://github.com/your-org/household-budget/issues"
+    },
+    "homepage": "https://github.com/your-org/household-budget#readme",
+    "files": [
+        "*.js",
+        "README.md",
+        "test.js"
+    ],
+    "exports": {
+        ".": "./index.js",
+        "./preprocessor": "./preprocessor.js",
+        "./visionAPI": "./visionAPI.js",
+        "./receiptParser": "./receiptParser.js",
+        "./validator": "./validator.js",
+        "./test": "./test.js"
+    }
+}

@@ -220,3 +220,4 @@ const CategoryDialog = ({ open, onClose, onSave, category }) => {
 };
 
 export default CategoryDialog;
+

@@ -24,3 +24,4 @@ export const ensureDefaultCategories = async () => {
         console.error('Error ensuring default categories:', error);
     }
 };
+

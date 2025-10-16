@@ -1,5 +1,6 @@
 import Receipt from '../models/Receipt.js';
-import { scanReceipt, detectCategory } from '../utils/receiptScanner.js';
+import { scanReceipt } from '../services/ocr/index.js';
+import { detectCategory } from '../utils/receiptScanner.js';
 import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
@@ -32,7 +33,7 @@ export const scanReceiptImage = async (req, res) => {
                 .toBuffer();
         }
 
-        // Scan receipt (תמונה או PDF)
+        // Scan receipt with enhanced OCR system
         const scannedData = await scanReceipt(fileBuffer, mimeType);
 
         // Detect category
@@ -78,13 +79,26 @@ export const scanReceiptImage = async (req, res) => {
             date: scannedData.date,
             total: scannedData.total,
             businessName: scannedData.businessName,
+            businessInfo: scannedData.businessInfo,
             category,
             subcategory,
             items: scannedData.items,
+            itemsCount: scannedData.itemsCount,
+            itemsTotal: scannedData.itemsTotal,
             imageUrl: receipt.imageUrl,
             isPdf,
             confidence: scannedData.confidence,
             rawText: scannedData.rawText,
+            // נתונים חדשים מהמערכת המשופרת
+            validation: scannedData.validation,
+            qualitySummary: scannedData.qualitySummary,
+            suggestions: scannedData.suggestions,
+            processingTime: scannedData.processingTime,
+            sessionId: scannedData.sessionId,
+            scanInfo: scannedData.scanInfo,
+            imageQuality: scannedData.imageQuality,
+            fallback: scannedData.fallback || false,
+            error: scannedData.error || false
         });
     } catch (error) {
         console.error('Receipt scan error:', error);

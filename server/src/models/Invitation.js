@@ -54,3 +54,4 @@ invitationSchema.statics.createToken = function () {
 const Invitation = mongoose.model('Invitation', invitationSchema);
 
 export default Invitation;
+
