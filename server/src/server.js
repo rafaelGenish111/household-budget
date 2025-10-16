@@ -183,11 +183,11 @@ if (!process.env.VERCEL) {
     const PORT = process.env.PORT || config.port;
     const server = app.listen(PORT, async () => {
         console.log(`🚀 Server running in ${config.nodeEnv} mode on port ${PORT}`);
-        // וודא שקטגוריות ברירת מחדל קיימות בהתחלה
+        // וודא חיבור למסד ורק אז קטגוריות ברירת מחדל (דרך ensureDbConnected)
         try {
-            await ensureDefaultCategories();
+            await ensureDbConnected();
         } catch (error) {
-            console.error('Error ensuring default categories on startup:', error);
+            console.error('Error ensuring DB connection on startup:', error);
         }
     });
 

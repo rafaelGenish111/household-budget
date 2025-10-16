@@ -1,8 +1,13 @@
+import mongoose from 'mongoose';
 import Category from '../models/Category.js';
 import { defaultCategories } from '../utils/defaultCategories.js';
 
 export const ensureDefaultCategories = async () => {
     try {
+        // רוץ רק אם יש חיבור פעיל למסד
+        if (mongoose.connection.readyState !== 1) {
+            return;
+        }
         const existingDefaults = await Category.find({ isDefault: true });
 
         if (existingDefaults.length === 0) {

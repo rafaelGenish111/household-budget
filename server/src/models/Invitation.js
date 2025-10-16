@@ -42,7 +42,6 @@ const invitationSchema = new mongoose.Schema(
 );
 
 // Indexes
-invitationSchema.index({ token: 1 });
 invitationSchema.index({ email: 1, household: 1 });
 invitationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

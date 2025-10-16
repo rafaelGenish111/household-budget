@@ -175,7 +175,7 @@ const ReceiptSessionSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-ReceiptSessionSchema.index({ sessionId: 1 });
+// שים לב: sessionId כבר מוגדר כ-unique + index בסכימה, אין צורך להגדיר שוב
 ReceiptSessionSchema.index({ household: 1, user: 1 });
 ReceiptSessionSchema.index({ status: 1 });
 ReceiptSessionSchema.index({ createdAt: -1 });
