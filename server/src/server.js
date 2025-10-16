@@ -17,6 +17,7 @@ import categoryRoutes from './routes/categories.js';
 import householdRoutes from './routes/household.js';
 import aiRoutes from './routes/ai.js';
 import receiptRoutes from './routes/receipts.js';
+import multiImageReceiptRoutes from './routes/multiImageReceipt.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -134,6 +135,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/household', householdRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/receipts', receiptRoutes);
+app.use('/api/multi-receipt', multiImageReceiptRoutes);
 
 // Serve static files (uploads)
 app.use('/uploads', express.static('uploads'));
@@ -154,7 +156,8 @@ app.get('/', (req, res) => {
             categories: '/api/categories',
             household: '/api/household',
             ai: '/api/ai',
-            receipts: '/api/receipts'
+            receipts: '/api/receipts',
+            multiReceipt: '/api/multi-receipt'
         },
         timestamp: new Date().toISOString(),
     });
