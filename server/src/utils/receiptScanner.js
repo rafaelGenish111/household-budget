@@ -171,6 +171,19 @@ function extractDate(text) {
 }
 
 function extractTotal(text) {
+    // שלב 0: דחה מיד שורות עם מילות חיסכון/הנחה
+    const excludePatterns = [
+        /(?:חסכת|חיסכון|הנחה|הנחת|ניכוי|discount|saved|savings|you saved|הנך חוסך)/i,
+    ];
+    
+    // נקה את הטקסט משורות "חסכת" ו"הנחה" לצורך חיפוש מילות מפתח
+    const textLines = text.split('\n');
+    const cleanedLines = textLines.filter(line => {
+        const lowerLine = line.toLowerCase();
+        return !excludePatterns.some(pattern => pattern.test(lowerLine));
+    });
+    const cleanedText = cleanedLines.join('\n');
+
     // שלב 1: חפש סכום מפורש עם מילות מפתח של תשלום (עדיפות גבוהה)
     // מילות מפתח אלו מעידות בוודאות גבוהה על סכום התשלום האמיתי
     const paymentKeywordPatterns = [
@@ -180,7 +193,7 @@ function extractTotal(text) {
 
     // נסה קודם למצוא סכום עם מילות תשלום מפורשות
     for (const pattern of paymentKeywordPatterns) {
-        const matches = [...text.matchAll(pattern)];
+        const matches = [...cleanedText.matchAll(pattern)];
         if (matches.length > 0) {
             const amounts = matches
                 .map((m) => parseFloat(m[1].replace(/,/g, '')))
@@ -199,7 +212,7 @@ function extractTotal(text) {
     ];
 
     for (const pattern of totalPatterns) {
-        const matches = [...text.matchAll(pattern)];
+        const matches = [...cleanedText.matchAll(pattern)];
         if (matches.length > 0) {
             const amounts = matches
                 .map((m) => parseFloat(m[1].replace(/,/g, '')))
@@ -211,32 +224,38 @@ function extractTotal(text) {
         }
     }
 
-    // שלב 2: אם לא נמצא סכום מפורש - ניתוח חכם
+    // שלב 3: אם לא נמצא סכום מפורש - ניתוח חכם
     const lines = text.split('\n');
     const candidates = [];
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-
+        const lowerLine = line.toLowerCase();
+        
+        // דלג על שורות עם מילות חיסכון/הנחה
+        if (excludePatterns.some(pattern => pattern.test(lowerLine))) {
+            continue;
+        }
+        
         // חפש מספרים עם בדיוק 2 ספרות אחרי נקודה
         const numbersInLine = line.match(/\d+\.\d{2}/g);
-
+        
         if (!numbersInLine) continue;
 
         for (const numStr of numbersInLine) {
             const amount = parseFloat(numStr);
-
+            
             // סינון ראשוני - רק סכומים סבירים
             if (amount <= 0 || amount > 100000) continue;
-
+            
             // חשב ציון (score) למספר הזה
             let score = 0;
-
+            
             // 1. בדוק מיקום אופקי - האם זה בצד ימין של השורה?
             const numIndex = line.indexOf(numStr);
             const lineLength = line.trim().length;
             const relativePosition = numIndex / Math.max(lineLength, 1);
-
+            
             // אם המספר בצד ימין (70% מהשורה ומעלה) - נקודות גבוהות
             if (relativePosition > 0.7) {
                 score += 50;
@@ -246,19 +265,19 @@ function extractTotal(text) {
                 // אם המספר בצד שמאל - ציון נמוך מאוד
                 score -= 30;
             }
-
+            
             // 2. בדוק אם השורה מכילה מילות מפתח רלוונטיות
             const lowerLine = line.toLowerCase();
             if (/(?:סה["']כ|סך|total|לתשלום|סופי|כולל)/i.test(lowerLine)) {
                 score += 100; // ציון מאוד גבוה
             }
-
+            
             // 3. בדוק אם זה בחלק התחתון של הקבלה (שורות אחרונות)
             const relativeLinePosition = i / Math.max(lines.length, 1);
             if (relativeLinePosition > 0.7) {
                 score += 30; // סכומים כוללים בדרך כלל בתחתית
             }
-
+            
             // 4. גודל המספר - סכומים גבוהים יותר נוטים להיות הסכום הכולל
             if (amount > 50) {
                 score += 20;
@@ -266,19 +285,19 @@ function extractTotal(text) {
             if (amount > 100) {
                 score += 10;
             }
-
+            
             // 5. דחה מספרים שנראים כמו מספר חבר מועדון או מספר כרטיס
             // מספרי חבר מועדון בדרך כלל ארוכים (6+ ספרות) או מופיעים עם תוויות מסוימות
             if (/(?:חבר|מועדון|כרטיס|card|member|#)/i.test(line)) {
                 score -= 100; // דחייה חזקה
             }
-
+            
             // אם המספר הוא בדיוק 2 ספרות לפני הנקודה ו-2 אחרי - יכול להיות סכום
             const parts = numStr.split('.');
             if (parts[0].length <= 2) {
                 score -= 20; // סכומים קטנים מאוד - ציון נמוך יותר
             }
-
+            
             candidates.push({
                 amount,
                 score,
@@ -288,7 +307,7 @@ function extractTotal(text) {
         }
     }
 
-    // שלב 3: בחר את המועמד הטוב ביותר
+    // שלב 4: בחר את המועמד הטוב ביותר
     if (candidates.length === 0) {
         return null;
     }
