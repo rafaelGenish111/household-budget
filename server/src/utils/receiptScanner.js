@@ -171,86 +171,118 @@ function extractDate(text) {
 }
 
 function extractTotal(text) {
-    const lines = text
-        .split(/\r?\n/)
-        .map((l) => l.replace(/[₪\s]+/g, ' ').trim())
-        .filter(Boolean);
-
-    const parseAmounts = (s) =>
-        (s.match(/\d{1,3}(?:[\,']\d{3})*\.?\d{2}|\d+\.\d{2}/g) || [])
-            .map((x) => parseFloat(x.replace(/[,']/g, '')))
-            .filter((n) => !isNaN(n));
-
-    const totalKeywords = [
-        'סה"כ לתשלום',
-        'סה\"כ לתשלום',
-        'סכום לתשלום',
-        'לתשלום',
-        'סכום סופי',
-        'total',
-        'grand total',
-        'balance due',
+    // שלב 1: חפש סכום מפורש עם מילות מפתח
+    const totalPatterns = [
+        /(?:סה["']כ|סך הכל|סכום לתשלום|total|לתשלום|סופי|לשלם|כולל|sum|סה"כ|סה״כ)[\s:]*([0-9,]+\.?\d{0,2})/gi,
     ];
-    const paidKeywords = ['שולם', 'מזומן', 'אשראי', 'כרטיס', 'שילם', 'paid', 'cash', 'credit'];
-    const changeKeywords = ['עודף', 'החזר', 'change'];
 
-    let candidateTotal = null;
-    let paidMax = null;
-    let changeAmt = null;
+    for (const pattern of totalPatterns) {
+        const matches = [...text.matchAll(pattern)];
+        if (matches.length > 0) {
+            const amounts = matches
+                .map((m) => parseFloat(m[1].replace(/,/g, '')))
+                .filter((n) => !isNaN(n) && n > 0);
+            
+            if (amounts.length > 0) {
+                return Math.max(...amounts);
+            }
+        }
+    }
+
+    // שלב 2: אם לא נמצא סכום מפורש - ניתוח חכם
+    const lines = text.split('\n');
+    const candidates = [];
 
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        const amountsHere = parseAmounts(lines[i]);
+        const line = lines[i];
+        
+        // חפש מספרים עם בדיוק 2 ספרות אחרי נקודה
+        const numbersInLine = line.match(/\d+\.\d{2}/g);
+        
+        if (!numbersInLine) continue;
 
-        // total by keywords (prefer last occurrence)
-        if (totalKeywords.some((k) => line.includes(k))) {
-            let amt = amountsHere.length > 0 ? amountsHere[amountsHere.length - 1] : null;
-            if (amt == null && i + 1 < lines.length) {
-                const nextAmts = parseAmounts(lines[i + 1]);
-                if (nextAmts.length > 0) amt = nextAmts[nextAmts.length - 1];
+        for (const numStr of numbersInLine) {
+            const amount = parseFloat(numStr);
+            
+            // סינון ראשוני - רק סכומים סבירים
+            if (amount <= 0 || amount > 100000) continue;
+            
+            // חשב ציון (score) למספר הזה
+            let score = 0;
+            
+            // 1. בדוק מיקום אופקי - האם זה בצד ימין של השורה?
+            const numIndex = line.indexOf(numStr);
+            const lineLength = line.trim().length;
+            const relativePosition = numIndex / Math.max(lineLength, 1);
+            
+            // אם המספר בצד ימין (70% מהשורה ומעלה) - נקודות גבוהות
+            if (relativePosition > 0.7) {
+                score += 50;
+            } else if (relativePosition > 0.5) {
+                score += 20;
+            } else {
+                // אם המספר בצד שמאל - ציון נמוך מאוד
+                score -= 30;
             }
-            if (amt != null) candidateTotal = amt; // keep last seen
-        }
-
-        // paid amount
-        if (paidKeywords.some((k) => line.includes(k))) {
-            const localMax = amountsHere.length > 0 ? Math.max(...amountsHere) : null;
-            if (localMax != null) paidMax = paidMax == null ? localMax : Math.max(paidMax, localMax);
-        }
-
-        // change amount (עודף)
-        if (changeKeywords.some((k) => line.includes(k))) {
-            const localMax = amountsHere.length > 0 ? Math.max(...amountsHere) : null;
-            if (localMax != null) changeAmt = localMax;
+            
+            // 2. בדוק אם השורה מכילה מילות מפתח רלוונטיות
+            const lowerLine = line.toLowerCase();
+            if (/(?:סה["']כ|סך|total|לתשלום|סופי|כולל)/i.test(lowerLine)) {
+                score += 100; // ציון מאוד גבוה
+            }
+            
+            // 3. בדוק אם זה בחלק התחתון של הקבלה (שורות אחרונות)
+            const relativeLinePosition = i / Math.max(lines.length, 1);
+            if (relativeLinePosition > 0.7) {
+                score += 30; // סכומים כוללים בדרך כלל בתחתית
+            }
+            
+            // 4. גודל המספר - סכומים גבוהים יותר נוטים להיות הסכום הכולל
+            if (amount > 50) {
+                score += 20;
+            }
+            if (amount > 100) {
+                score += 10;
+            }
+            
+            // 5. דחה מספרים שנראים כמו מספר חבר מועדון או מספר כרטיס
+            // מספרי חבר מועדון בדרך כלל ארוכים (6+ ספרות) או מופיעים עם תוויות מסוימות
+            if (/(?:חבר|מועדון|כרטיס|card|member|#)/i.test(line)) {
+                score -= 100; // דחייה חזקה
+            }
+            
+            // אם המספר הוא בדיוק 2 ספרות לפני הנקודה ו-2 אחרי - יכול להיות סכום
+            const parts = numStr.split('.');
+            if (parts[0].length <= 2) {
+                score -= 20; // סכומים קטנים מאוד - ציון נמוך יותר
+            }
+            
+            candidates.push({
+                amount,
+                score,
+                line: line.trim(),
+                lineIndex: i,
+            });
         }
     }
 
-    // אם זוהה סכום לתשלום מפורש – החזר אותו, ובמידה ויש סכום שולם גדול ממנו, אשר אותו
-    if (candidateTotal != null) {
-        if (paidMax != null && candidateTotal > paidMax) {
-            // OCR טעה – קח את המינימום ביניהם
-            return Math.min(candidateTotal, paidMax);
-        }
-        return candidateTotal;
+    // שלב 3: בחר את המועמד הטוב ביותר
+    if (candidates.length === 0) {
+        return null;
     }
 
-    // אם אין total מפורש אבל יש שולם ועודף – חשב total = paid - change
-    if (paidMax != null && changeAmt != null) {
-        const computed = paidMax - changeAmt;
-        if (computed > 0) return round2(computed);
+    // מיין לפי ציון (גבוה לנמוך)
+    candidates.sort((a, b) => b.score - a.score);
+
+    // החזר את המועמד עם הציון הגבוה ביותר, רק אם הציון חיובי
+    const best = candidates[0];
+    if (best.score > 0) {
+        return best.amount;
     }
 
-    // fallback: אם יש כמה סכומים – קח את הגדול ביותר שקטן או שווה לסכום ששולם
-    const allAmounts = parseAmounts(text);
-    if (allAmounts.length) {
-        if (paidMax != null) {
-            const candidates = allAmounts.filter((n) => n <= paidMax + 0.01);
-            if (candidates.length) return Math.max(...candidates);
-        }
-        return Math.max(...allAmounts);
-    }
-
-    return null;
+    // אם כל הציונים שליליים - החזר את הסכום הגבוה ביותר מבין המועמדים
+    const maxAmount = Math.max(...candidates.map((c) => c.amount));
+    return maxAmount > 0 ? maxAmount : null;
 }
 
 function round2(n) {
