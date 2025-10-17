@@ -6,13 +6,13 @@ import fs from 'fs';
 async function getPdfParse() {
     // Polyfills מינימליים שה-pdfjs (תלות של pdf-parse) מצפה להם בסביבת Node
     if (typeof globalThis.DOMMatrix === 'undefined') {
-        globalThis.DOMMatrix = class {};
+        globalThis.DOMMatrix = class { };
     }
     if (typeof globalThis.Path2D === 'undefined') {
-        globalThis.Path2D = class {};
+        globalThis.Path2D = class { };
     }
     if (typeof globalThis.ImageData === 'undefined') {
-        globalThis.ImageData = class {};
+        globalThis.ImageData = class { };
     }
 
     const mod = await import('pdf-parse');
@@ -54,7 +54,7 @@ export async function scanReceipt(fileBuffer, mimeType = 'image/jpeg') {
                 const pdfData = await pdfParse(fileBuffer);
                 text = pdfData.text;
                 console.log('✅ טקסט חולץ מ-PDF בהצלחה!');
-                
+
                 if (!text || text.trim().length === 0) {
                     console.log('⚠️ PDF ריק או לא קריא');
                     return getBasicScan();
@@ -171,9 +171,31 @@ function extractDate(text) {
 }
 
 function extractTotal(text) {
-    // שלב 1: חפש סכום מפורש עם מילות מפתח
+    // שלב 1: חפש סכום מפורש עם מילות מפתח של תשלום (עדיפות גבוהה)
+    // מילות מפתח אלו מעידות בוודאות גבוהה על סכום התשלום האמיתי
+    const paymentKeywordPatterns = [
+        /(?:סה["']כ\s+לתשלום|סה["']כ\s+שולם|לתשלום|שולם|סכום\s+לתשלום|סכום\s+ששולם|סה"כ\s+לתשלום|סה״כ\s+לתשלום|סה"כ\s+שולם|סה״כ\s+שולם)[\s:]*([0-9,]+\.?\d{0,2})/gi,
+        /(?:paid|amount\s+paid|total\s+paid|payment|amount\s+due)[\s:]*([0-9,]+\.?\d{0,2})/gi,
+    ];
+
+    // נסה קודם למצוא סכום עם מילות תשלום מפורשות
+    for (const pattern of paymentKeywordPatterns) {
+        const matches = [...text.matchAll(pattern)];
+        if (matches.length > 0) {
+            const amounts = matches
+                .map((m) => parseFloat(m[1].replace(/,/g, '')))
+                .filter((n) => !isNaN(n) && n > 0);
+            
+            if (amounts.length > 0) {
+                // מצאנו סכום תשלום מפורש - זו הוודאות הגבוהה ביותר!
+                return Math.max(...amounts);
+            }
+        }
+    }
+
+    // שלב 2: אם לא נמצא תשלום מפורש, חפש "סה״כ" כללי (עדיפות בינונית)
     const totalPatterns = [
-        /(?:סה["']כ|סך הכל|סכום לתשלום|total|לתשלום|סופי|לשלם|כולל|sum|סה"כ|סה״כ)[\s:]*([0-9,]+\.?\d{0,2})/gi,
+        /(?:סה["']כ|סך הכל|total|סופי|כולל|sum|סה"כ|סה״כ)[\s:]*([0-9,]+\.?\d{0,2})/gi,
     ];
 
     for (const pattern of totalPatterns) {
@@ -195,26 +217,26 @@ function extractTotal(text) {
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        
+
         // חפש מספרים עם בדיוק 2 ספרות אחרי נקודה
         const numbersInLine = line.match(/\d+\.\d{2}/g);
-        
+
         if (!numbersInLine) continue;
 
         for (const numStr of numbersInLine) {
             const amount = parseFloat(numStr);
-            
+
             // סינון ראשוני - רק סכומים סבירים
             if (amount <= 0 || amount > 100000) continue;
-            
+
             // חשב ציון (score) למספר הזה
             let score = 0;
-            
+
             // 1. בדוק מיקום אופקי - האם זה בצד ימין של השורה?
             const numIndex = line.indexOf(numStr);
             const lineLength = line.trim().length;
             const relativePosition = numIndex / Math.max(lineLength, 1);
-            
+
             // אם המספר בצד ימין (70% מהשורה ומעלה) - נקודות גבוהות
             if (relativePosition > 0.7) {
                 score += 50;
@@ -224,19 +246,19 @@ function extractTotal(text) {
                 // אם המספר בצד שמאל - ציון נמוך מאוד
                 score -= 30;
             }
-            
+
             // 2. בדוק אם השורה מכילה מילות מפתח רלוונטיות
             const lowerLine = line.toLowerCase();
             if (/(?:סה["']כ|סך|total|לתשלום|סופי|כולל)/i.test(lowerLine)) {
                 score += 100; // ציון מאוד גבוה
             }
-            
+
             // 3. בדוק אם זה בחלק התחתון של הקבלה (שורות אחרונות)
             const relativeLinePosition = i / Math.max(lines.length, 1);
             if (relativeLinePosition > 0.7) {
                 score += 30; // סכומים כוללים בדרך כלל בתחתית
             }
-            
+
             // 4. גודל המספר - סכומים גבוהים יותר נוטים להיות הסכום הכולל
             if (amount > 50) {
                 score += 20;
@@ -244,19 +266,19 @@ function extractTotal(text) {
             if (amount > 100) {
                 score += 10;
             }
-            
+
             // 5. דחה מספרים שנראים כמו מספר חבר מועדון או מספר כרטיס
             // מספרי חבר מועדון בדרך כלל ארוכים (6+ ספרות) או מופיעים עם תוויות מסוימות
             if (/(?:חבר|מועדון|כרטיס|card|member|#)/i.test(line)) {
                 score -= 100; // דחייה חזקה
             }
-            
+
             // אם המספר הוא בדיוק 2 ספרות לפני הנקודה ו-2 אחרי - יכול להיות סכום
             const parts = numStr.split('.');
             if (parts[0].length <= 2) {
                 score -= 20; // סכומים קטנים מאוד - ציון נמוך יותר
             }
-            
+
             candidates.push({
                 amount,
                 score,
