@@ -7,6 +7,8 @@ import {
     Box,
     Alert,
     AlertTitle,
+    Card,
+    CardContent,
 } from '@mui/material';
 import {
     TrendingUp,
@@ -17,6 +19,8 @@ import {
     Warning,
     Info,
     CheckCircle,
+    Timeline,
+    Compare,
 } from '@mui/icons-material';
 import { PieChart, LineChart } from '../../components/charts';
 import { fetchSummary, fetchByCategory } from '../../store/slices/transactionsSlice';
@@ -25,6 +29,18 @@ import { aiService } from '../../services/aiService';
 import StatCard from '../../components/common/StatCard';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import TimeRangeSelector from '../../components/dashboard/TimeRangeSelector';
+import TrendChart from '../../components/charts/TrendChart';
+import ComparisonCard from '../../components/dashboard/ComparisonCard';
+import { useTimeRange } from '../../hooks/useTimeRange';
+import {
+    getTimeRangeStats,
+    getCategoryBreakdown,
+    getTrendData,
+    getComparison,
+    getPreviousPeriodDates,
+    formatCurrency
+} from '../../services/statisticsService';
 
 
 const Dashboard = () => {
@@ -35,12 +51,60 @@ const Dashboard = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [monthlyTrend, setMonthlyTrend] = useState([]);
 
+    // New state for enhanced dashboard
+    const [timeRangeStats, setTimeRangeStats] = useState(null);
+    const [categoryBreakdown, setCategoryBreakdown] = useState([]);
+    const [trendData, setTrendData] = useState([]);
+    const [comparisonData, setComparisonData] = useState(null);
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Time range hook
+    const { timeRangeConfig, currentRange } = useTimeRange();
+
+    // Fetch enhanced statistics
+    const fetchStatistics = async () => {
+        setLoadingStats(true);
+        setError(null);
+
+        try {
+            const startDate = timeRangeConfig.start.toISOString().split('T')[0];
+            const endDate = timeRangeConfig.end.toISOString().split('T')[0];
+
+            // Fetch all statistics in parallel
+            const [statsResponse, categoryResponse, trendResponse] = await Promise.all([
+                getTimeRangeStats(startDate, endDate),
+                getCategoryBreakdown(startDate, endDate, 'expense'),
+                getTrendData(startDate, endDate, timeRangeConfig.groupBy)
+            ]);
+
+            setTimeRangeStats(statsResponse.data);
+            setCategoryBreakdown(categoryResponse.data.breakdown || []);
+            setTrendData(trendResponse.data.trends || []);
+
+            // Fetch comparison data
+            const { previousStart, previousEnd } = getPreviousPeriodDates(startDate, endDate, currentRange);
+            const comparisonResponse = await getComparison(startDate, endDate, previousStart, previousEnd);
+            setComparisonData(comparisonResponse.data);
+
+        } catch (err) {
+            console.error('Error fetching statistics:', err);
+            setError('שגיאה בטעינת נתוני הסטטיסטיקות');
+        } finally {
+            setLoadingStats(false);
+        }
+    };
+
     useEffect(() => {
-        // Get current month
+        fetchStatistics();
+    }, [timeRangeConfig, currentRange]);
+
+    useEffect(() => {
+        // Get current month for legacy data
         const now = new Date();
         const currentMonth = now.toISOString().slice(0, 7);
 
-        // Fetch all data
+        // Fetch legacy data for backward compatibility
         dispatch(fetchSummary({
             startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
             endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString()
@@ -60,7 +124,6 @@ const Dashboard = () => {
         });
 
         // Fetch monthly trend (mock for now - will implement properly)
-        // For now, create mock data
         const trendData = [];
         for (let i = 5; i >= 0; i--) {
             const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -79,11 +142,18 @@ const Dashboard = () => {
     }
 
     const totalSavings = savings.reduce((sum, s) => sum + s.current, 0);
-    const balance = (summary?.income || 0) - (summary?.expense || 0);
 
-    // Prepare pie chart data
-    const pieData = byCategory.map((cat) => ({
-        name: cat._id,
+    // Use enhanced stats if available, fallback to legacy
+    const displayStats = timeRangeStats || {
+        totalIncome: summary?.income || 0,
+        totalExpenses: summary?.expense || 0,
+        balance: (summary?.income || 0) - (summary?.expense || 0),
+        dailyAverage: 0
+    };
+
+    // Prepare pie chart data - use enhanced category data if available
+    const pieData = (categoryBreakdown.length > 0 ? categoryBreakdown : byCategory).map((cat) => ({
+        name: cat.category || cat._id,
         value: cat.total,
     }));
 
@@ -108,12 +178,22 @@ const Dashboard = () => {
                 סקירה כללית של המצב הכלכלי שלך
             </Typography>
 
-            {/* Stats Cards */}
+            {/* Time Range Selector */}
+            <TimeRangeSelector />
+
+            {/* Error Alert */}
+            {error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {error}
+                </Alert>
+            )}
+
+            {/* Enhanced Stats Cards */}
             <Grid container spacing={3} mb={4}>
                 <Grid item xs={12} sm={6} md={3}>
                     <StatCard
-                        title="הכנסות החודש"
-                        value={`₪${(summary?.income || 0).toLocaleString()}`}
+                        title={`הכנסות ${timeRangeConfig.label}`}
+                        value={formatCurrency(displayStats.totalIncome)}
                         icon={<TrendingUp sx={{ color: 'white' }} />}
                         color="#4caf50"
                         onClick={() => navigate('/transactions?type=income')}
@@ -121,8 +201,8 @@ const Dashboard = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <StatCard
-                        title="הוצאות החודש"
-                        value={`₪${(summary?.expense || 0).toLocaleString()}`}
+                        title={`הוצאות ${timeRangeConfig.label}`}
+                        value={formatCurrency(displayStats.totalExpenses)}
                         icon={<TrendingDown sx={{ color: 'white' }} />}
                         color="#f44336"
                         onClick={() => navigate('/transactions?type=expense')}
@@ -131,33 +211,51 @@ const Dashboard = () => {
                 <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                         title="יתרה"
-                        value={`₪${balance.toLocaleString()}`}
+                        value={formatCurrency(displayStats.balance)}
                         icon={<AccountBalance sx={{ color: 'white' }} />}
-                        color={balance >= 0 ? '#2196f3' : '#ff9800'}
+                        color={displayStats.balance >= 0 ? '#2196f3' : '#ff9800'}
                         onClick={() => navigate('/transactions')}
                     />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <StatCard
-                        title="סך חסכונות"
-                        value={`₪${totalSavings.toLocaleString()}`}
-                        icon={<SavingsIcon sx={{ color: 'white' }} />}
-                        color="#9c27b0"
-                        onClick={() => navigate('/savings')}
-                    />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <StatCard
-                        title="התחייבויות"
-                        value="צפה"
-                        icon={<CommitmentsIcon sx={{ color: 'white' }} />}
-                        color="#ff7043"
-                        onClick={() => navigate('/commitments')}
+                        title={displayStats.dailyAverage > 0 ? "ממוצע יומי" : "סך חסכונות"}
+                        value={displayStats.dailyAverage > 0 ? formatCurrency(displayStats.dailyAverage) : formatCurrency(totalSavings)}
+                        icon={displayStats.dailyAverage > 0 ? <Timeline sx={{ color: 'white' }} /> : <SavingsIcon sx={{ color: 'white' }} />}
+                        color={displayStats.dailyAverage > 0 ? "#ff9800" : "#9c27b0"}
+                        onClick={() => navigate(displayStats.dailyAverage > 0 ? '/transactions' : '/savings')}
                     />
                 </Grid>
             </Grid>
 
-            {/* Charts */}
+            {/* Enhanced Charts and Analysis */}
+            <Grid container spacing={3} mb={4}>
+                {/* Trend Chart */}
+                <Grid item xs={12} md={8}>
+                    <Card sx={{ height: '100%' }}>
+                        <CardContent>
+                            <TrendChart
+                                data={trendData}
+                                loading={loadingStats}
+                                error={error}
+                                title={`מגמות ${timeRangeConfig.label}`}
+                            />
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                {/* Comparison Card */}
+                <Grid item xs={12} md={4}>
+                    <ComparisonCard
+                        data={comparisonData}
+                        loading={loadingStats}
+                        error={error}
+                        title="השוואה לתקופה קודמת"
+                    />
+                </Grid>
+            </Grid>
+
+            {/* Category Breakdown */}
             <Grid container spacing={3} mb={4}>
                 {/* Pie Chart */}
                 <Grid item xs={12} md={6}>
@@ -179,7 +277,7 @@ const Dashboard = () => {
                     </Paper>
                 </Grid>
 
-                {/* Line Chart */}
+                {/* Legacy Line Chart */}
                 <Grid item xs={12} md={6}>
                     <Paper sx={{ p: 3, height: '100%' }}>
                         <Typography
@@ -188,7 +286,7 @@ const Dashboard = () => {
                             sx={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 4 }}
                             onClick={() => navigate('/transactions')}
                         >
-                            מגמה חודשית
+                            מגמה חודשית (לשם השוואה)
                         </Typography>
                         <LineChart data={monthlyTrend} />
                     </Paper>

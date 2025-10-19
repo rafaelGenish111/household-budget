@@ -1,6 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Typography, Box } from '@mui/material';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF7C7C'];
 
@@ -53,6 +54,8 @@ const CustomLegend = ({ payload }) => {
 };
 
 const ExpensePieChart = ({ data, title = "התפלגות הוצאות", onSliceClick }) => {
+    const { getCategoryColor } = useTheme();
+
     if (!data || data.length === 0) {
         return (
             <Box sx={{ textAlign: 'center', p: 3 }}>
@@ -67,7 +70,8 @@ const ExpensePieChart = ({ data, title = "התפלגות הוצאות", onSliceC
     const total = data.reduce((sum, item) => sum + item.value, 0);
     const dataWithPercentage = data.map(item => ({
         ...item,
-        percentage: ((item.value / total) * 100).toFixed(1)
+        percentage: ((item.value / total) * 100).toFixed(1),
+        color: getCategoryColor(item.name) // Use theme color for each category
     }));
 
     return (
@@ -93,7 +97,7 @@ const ExpensePieChart = ({ data, title = "התפלגות הוצאות", onSliceC
                         }}
                     >
                         {dataWithPercentage.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />

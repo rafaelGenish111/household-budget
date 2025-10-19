@@ -8,6 +8,7 @@ import createCache from '@emotion/cache';
 import { useSelector } from 'react-redux';
 import { store } from './store/store';
 import { getTheme } from './theme/theme';
+import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 
 // PWA Components
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -45,42 +46,44 @@ const AppContent = () => {
     const theme = getTheme(mode);
 
     return (
-        <CacheProvider value={cacheRtl}>
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <BrowserRouter>
-                    <Routes>
-                        {/* Public Routes */}
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-                        <Route path="/forgot-password" element={<ForgotPassword />} />
-                        <Route path="/reset-password/:token" element={<ResetPassword />} />
-                        <Route path="/join/:token" element={<JoinHousehold />} />
+        <CustomThemeProvider>
+            <CacheProvider value={cacheRtl}>
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    <BrowserRouter>
+                        <Routes>
+                            {/* Public Routes */}
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
+                            <Route path="/forgot-password" element={<ForgotPassword />} />
+                            <Route path="/reset-password/:token" element={<ResetPassword />} />
+                            <Route path="/join/:token" element={<JoinHousehold />} />
 
-                        {/* Protected Routes */}
-                        <Route
-                            path="/"
-                            element={
-                                <ProtectedRoute>
-                                    <Layout />
-                                </ProtectedRoute>
-                            }
-                        >
-                            <Route index element={<Navigate to="/dashboard" replace />} />
-                            <Route path="dashboard" element={<Dashboard />} />
-                            <Route path="transactions" element={<TransactionsList />} />
-                            <Route path="savings" element={<SavingsList />} />
-                            <Route path="commitments" element={<CommitmentsList />} />
-                            <Route path="goals" element={<BudgetGoals />} />
-                            <Route path="settings" element={<Settings />} />
-                        </Route>
+                            {/* Protected Routes */}
+                            <Route
+                                path="/"
+                                element={
+                                    <ProtectedRoute>
+                                        <Layout />
+                                    </ProtectedRoute>
+                                }
+                            >
+                                <Route index element={<Navigate to="/dashboard" replace />} />
+                                <Route path="dashboard" element={<Dashboard />} />
+                                <Route path="transactions" element={<TransactionsList />} />
+                                <Route path="savings" element={<SavingsList />} />
+                                <Route path="commitments" element={<CommitmentsList />} />
+                                <Route path="goals" element={<BudgetGoals />} />
+                                <Route path="settings" element={<Settings />} />
+                            </Route>
 
-                        {/* Fallback */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </BrowserRouter>
-            </ThemeProvider>
-        </CacheProvider>
+                            {/* Fallback */}
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                    </BrowserRouter>
+                </ThemeProvider>
+            </CacheProvider>
+        </CustomThemeProvider>
     );
 };
 

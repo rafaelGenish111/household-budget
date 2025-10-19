@@ -29,6 +29,7 @@ import {
 import { fetchCategories } from '../../store/slices/categoriesSlice';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import AddTransactionDialog from './AddTransactionDialog';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const TransactionsList = () => {
     const dispatch = useDispatch();
@@ -38,6 +39,7 @@ const TransactionsList = () => {
     );
     const navigate = useNavigate();
     const { categories } = useSelector((state) => state.categories);
+    const { getCategoryColor, getCategoryIcon } = useTheme();
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editTransaction, setEditTransaction] = useState(null);
@@ -237,7 +239,21 @@ const TransactionsList = () => {
                                             size="small"
                                         />
                                     </TableCell>
-                                    <TableCell>{transaction.category}</TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            icon={<span>{getCategoryIcon(transaction.category)}</span>}
+                                            label={transaction.category}
+                                            sx={{
+                                                backgroundColor: getCategoryColor(transaction.category),
+                                                color: 'white',
+                                                '&:hover': {
+                                                    backgroundColor: getCategoryColor(transaction.category),
+                                                    opacity: 0.8,
+                                                },
+                                            }}
+                                            size="small"
+                                        />
+                                    </TableCell>
                                     <TableCell>{transaction.description || '-'}</TableCell>
                                     <TableCell>{transaction.paymentMethod}</TableCell>
                                     <TableCell align="left">

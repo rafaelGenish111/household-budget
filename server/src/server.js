@@ -19,6 +19,7 @@ import aiRoutes from './routes/ai.js';
 import receiptRoutes from './routes/receipts.js';
 import multiImageReceiptRoutes from './routes/multiImageReceipt.js';
 import recurringPaymentsRoutes from './routes/recurringPayments.js';
+import statisticsRoutes from './routes/statistics.js';
 import { startRecurringPaymentsJob } from './jobs/recurringPayments.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -39,7 +40,7 @@ async function ensureDbConnected() {
         await connectDB();
         // וודא שקטגוריות ברירת מחדל קיימות
         await ensureDefaultCategories();
-        
+
         // 🆕 הפעלת Cron Job לתשלומים חוזרים אוטומטיים
         startRecurringPaymentsJob();
     } catch (e) {
@@ -142,6 +143,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/multi-receipt', multiImageReceiptRoutes);
 app.use('/api/recurring-payments', recurringPaymentsRoutes);
+app.use('/api/statistics', statisticsRoutes);
 
 // Serve static files (uploads)
 app.use('/uploads', express.static('uploads'));
@@ -163,7 +165,8 @@ app.get('/', (req, res) => {
             household: '/api/household',
             ai: '/api/ai',
             receipts: '/api/receipts',
-            multiReceipt: '/api/multi-receipt'
+            multiReceipt: '/api/multi-receipt',
+            statistics: '/api/statistics'
         },
         timestamp: new Date().toISOString(),
     });

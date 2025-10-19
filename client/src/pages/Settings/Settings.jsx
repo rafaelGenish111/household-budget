@@ -4,6 +4,7 @@ import ProfileTab from './ProfileTab';
 import HouseholdTab from './HouseholdTab';
 import CategoriesTab from './CategoriesTab';
 import PreferencesTab from './PreferencesTab';
+import ThemeSelector from '../../components/settings/ThemeSelector';
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState(0);
@@ -31,6 +32,7 @@ const Settings = () => {
                     <Tab label="משק בית" />
                     <Tab label="קטגוריות" />
                     <Tab label="העדפות" />
+                    <Tab label="ערכת נושא" />
                 </Tabs>
 
                 <Box p={3}>
@@ -38,6 +40,7 @@ const Settings = () => {
                     {activeTab === 1 && <HouseholdTab />}
                     {activeTab === 2 && <CategoriesTab />}
                     {activeTab === 3 && <PreferencesTab />}
+                    {activeTab === 4 && <ThemeSelector />}
                 </Box>
             </Paper>
         </Box>
