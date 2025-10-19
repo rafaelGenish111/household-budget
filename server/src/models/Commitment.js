@@ -36,6 +36,28 @@ const commitmentSchema = new mongoose.Schema(
             type: Date,
             required: [true, 'נא לבחור תאריך התחלה'],
         },
+        isRecurring: {
+            type: Boolean,
+            default: true,
+            description: 'האם זה תשלום חודשי אוטומטי'
+        },
+        recurringDay: {
+            type: Number,
+            min: 1,
+            max: 31,
+            default: 1,
+            description: 'יום בחודש לביצוע התשלום (1-31)'
+        },
+        recurringCategory: {
+            type: String,
+            default: 'החזרי הלוואות',
+            description: 'שם הקטגוריה שתיווצר בהוצאה'
+        },
+        lastProcessedDate: {
+            type: Date,
+            default: null,
+            description: 'תאריך אחרון שבו עובד התשלום החודשי'
+        },
     },
     {
         timestamps: true,

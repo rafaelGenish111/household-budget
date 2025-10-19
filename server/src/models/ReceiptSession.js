@@ -181,12 +181,12 @@ ReceiptSessionSchema.index({ status: 1 });
 ReceiptSessionSchema.index({ createdAt: -1 });
 
 // Virtual for image count
-ReceiptSessionSchema.virtual('imageCount').get(function() {
+ReceiptSessionSchema.virtual('imageCount').get(function () {
     return this.images.length;
 });
 
 // Virtual for processing progress
-ReceiptSessionSchema.virtual('progress').get(function() {
+ReceiptSessionSchema.virtual('progress').get(function () {
     if (this.status === 'capturing') {
         return Math.min((this.images.length / this.settings.maxImages) * 100, 100);
     }
@@ -194,7 +194,7 @@ ReceiptSessionSchema.virtual('progress').get(function() {
 });
 
 // Methods
-ReceiptSessionSchema.methods.addImage = function(imageData) {
+ReceiptSessionSchema.methods.addImage = function (imageData) {
     const image = {
         id: this.generateImageId(),
         blob: imageData.blob,
@@ -205,22 +205,22 @@ ReceiptSessionSchema.methods.addImage = function(imageData) {
         timestamp: new Date(),
         metadata: imageData.metadata
     };
-    
+
     this.images.push(image);
     this.updatedAt = new Date();
-    
+
     return image;
 };
 
-ReceiptSessionSchema.methods.generateImageId = function() {
+ReceiptSessionSchema.methods.generateImageId = function () {
     return `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-ReceiptSessionSchema.methods.generateSessionId = function() {
+ReceiptSessionSchema.methods.generateSessionId = function () {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-ReceiptSessionSchema.methods.updateOverlap = function(imageIndex, overlapData) {
+ReceiptSessionSchema.methods.updateOverlap = function (imageIndex, overlapData) {
     if (this.images[imageIndex]) {
         this.images[imageIndex].overlappingLines = overlapData.lines;
         this.images[imageIndex].overlapConfidence = overlapData.confidence;
@@ -228,7 +228,7 @@ ReceiptSessionSchema.methods.updateOverlap = function(imageIndex, overlapData) {
     }
 };
 
-ReceiptSessionSchema.methods.completeSession = function(mergedResult, validation) {
+ReceiptSessionSchema.methods.completeSession = function (mergedResult, validation) {
     this.status = 'completed';
     this.mergedResult = mergedResult;
     this.validation = validation;
@@ -237,16 +237,16 @@ ReceiptSessionSchema.methods.completeSession = function(mergedResult, validation
     this.updatedAt = new Date();
 };
 
-ReceiptSessionSchema.methods.cancelSession = function() {
+ReceiptSessionSchema.methods.cancelSession = function () {
     this.status = 'cancelled';
     this.updatedAt = new Date();
 };
 
-ReceiptSessionSchema.methods.getLastImage = function() {
+ReceiptSessionSchema.methods.getLastImage = function () {
     return this.images[this.images.length - 1];
 };
 
-ReceiptSessionSchema.methods.getLastLines = function(count = 3) {
+ReceiptSessionSchema.methods.getLastLines = function (count = 3) {
     const lastImage = this.getLastImage();
     if (lastImage && lastImage.parsedData && lastImage.parsedData.allLines) {
         return lastImage.parsedData.allLines.slice(-count);
@@ -254,14 +254,14 @@ ReceiptSessionSchema.methods.getLastLines = function(count = 3) {
     return [];
 };
 
-ReceiptSessionSchema.methods.canAddMoreImages = function() {
+ReceiptSessionSchema.methods.canAddMoreImages = function () {
     return this.images.length < this.settings.maxImages && this.status === 'capturing';
 };
 
-ReceiptSessionSchema.methods.detectReceiptEnd = function() {
+ReceiptSessionSchema.methods.detectReceiptEnd = function () {
     const lastImage = this.getLastImage();
     if (!lastImage || !lastImage.parsedData) return false;
-    
+
     const lastLines = lastImage.parsedData.allLines.slice(-5);
     const endIndicators = [
         /סה["']כ|total|לתשלום/i,
@@ -269,18 +269,18 @@ ReceiptSessionSchema.methods.detectReceiptEnd = function() {
         /ח\.פ\.|ע\.מ\./i,
         /מזומן|אשראי|cash|credit/i
     ];
-    
+
     for (const line of lastLines) {
         if (endIndicators.some(pattern => pattern.test(line))) {
             return true;
         }
     }
-    
+
     return false;
 };
 
 // Static methods
-ReceiptSessionSchema.statics.createNewSession = function(householdId, userId, settings = {}) {
+ReceiptSessionSchema.statics.createNewSession = function (householdId, userId, settings = {}) {
     const session = new this({
         sessionId: this.generateSessionId(),
         household: householdId,
@@ -292,15 +292,15 @@ ReceiptSessionSchema.statics.createNewSession = function(householdId, userId, se
             ...settings
         }
     });
-    
+
     return session;
 };
 
-ReceiptSessionSchema.statics.generateSessionId = function() {
+ReceiptSessionSchema.statics.generateSessionId = function () {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-ReceiptSessionSchema.statics.findActiveSessions = function(householdId, userId) {
+ReceiptSessionSchema.statics.findActiveSessions = function (householdId, userId) {
     return this.find({
         household: householdId,
         user: userId,
@@ -308,7 +308,7 @@ ReceiptSessionSchema.statics.findActiveSessions = function(householdId, userId) 
     }).sort({ createdAt: -1 });
 };
 
-ReceiptSessionSchema.statics.findCompletedSessions = function(householdId, userId, limit = 50) {
+ReceiptSessionSchema.statics.findCompletedSessions = function (householdId, userId, limit = 50) {
     return this.find({
         household: householdId,
         user: userId,
@@ -317,13 +317,13 @@ ReceiptSessionSchema.statics.findCompletedSessions = function(householdId, userI
 };
 
 // Pre-save middleware
-ReceiptSessionSchema.pre('save', function(next) {
+ReceiptSessionSchema.pre('save', function (next) {
     this.updatedAt = new Date();
     next();
 });
 
 // Pre-remove middleware to clean up files
-ReceiptSessionSchema.pre('remove', function(next) {
+ReceiptSessionSchema.pre('remove', function (next) {
     // Here you could add logic to clean up stored files
     // For now, we'll just continue
     next();

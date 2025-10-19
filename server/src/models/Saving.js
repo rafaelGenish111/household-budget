@@ -31,6 +31,28 @@ const savingSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        isRecurring: {
+            type: Boolean,
+            default: false,
+            description: 'האם זו הפקדה חודשית אוטומטית'
+        },
+        recurringDay: {
+            type: Number,
+            min: 1,
+            max: 31,
+            default: null,
+            description: 'יום בחודש לביצוע ההפקדה (1-31)'
+        },
+        recurringCategory: {
+            type: String,
+            default: 'חסכונות',
+            description: 'שם הקטגוריה שתיווצר בהוצאה'
+        },
+        lastProcessedDate: {
+            type: Date,
+            default: null,
+            description: 'תאריך אחרון שבו עובדה ההפקדה החודשית'
+        },
     },
     {
         timestamps: true,

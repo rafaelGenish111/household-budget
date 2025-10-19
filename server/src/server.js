@@ -18,6 +18,8 @@ import householdRoutes from './routes/household.js';
 import aiRoutes from './routes/ai.js';
 import receiptRoutes from './routes/receipts.js';
 import multiImageReceiptRoutes from './routes/multiImageReceipt.js';
+import recurringPaymentsRoutes from './routes/recurringPayments.js';
+import { startRecurringPaymentsJob } from './jobs/recurringPayments.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -37,6 +39,9 @@ async function ensureDbConnected() {
         await connectDB();
         // וודא שקטגוריות ברירת מחדל קיימות
         await ensureDefaultCategories();
+        
+        // 🆕 הפעלת Cron Job לתשלומים חוזרים אוטומטיים
+        startRecurringPaymentsJob();
     } catch (e) {
         console.error('DB connect error (lazy):', e.message);
     } finally {
@@ -92,16 +97,16 @@ app.use((req, res, next) => {
         'https://household-budget-client.vercel.app',
         'https://household-budget-client-git-main-rafaelgenish111s-projects.vercel.app'
     ];
-    
+
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin) || (origin && origin.match(/^https:\/\/household-budget-client.*\.vercel\.app$/))) {
         res.header('Access-Control-Allow-Origin', origin);
     }
-    
+
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, Accept, Origin, X-Requested-With');
-    
+
     next();
 });
 
@@ -136,6 +141,7 @@ app.use('/api/household', householdRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/multi-receipt', multiImageReceiptRoutes);
+app.use('/api/recurring-payments', recurringPaymentsRoutes);
 
 // Serve static files (uploads)
 app.use('/uploads', express.static('uploads'));

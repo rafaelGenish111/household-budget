@@ -171,14 +171,14 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                                 >
                                     צלם חשבונית רגילה
                                 </Button>
-                            <Button
-                                variant="contained"
-                                startIcon={<ViewInAr />}
-                                onClick={() => setMultiImageMode(true)}
-                                sx={{ flex: 1 }}
-                            >
-                                📸 חשבונית ארוכה
-                            </Button>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<ViewInAr />}
+                                    onClick={() => setMultiImageMode(true)}
+                                    sx={{ flex: 1 }}
+                                >
+                                    📸 חשבונית ארוכה
+                                </Button>
                             </Box>
 
                             {/* טיפים לצילום טוב יותר */}
@@ -440,15 +440,15 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                 </DialogActions>
             </Dialog>
 
-        {/* Multi-Image Receipt Scanner */}
-        <MultiImageReceiptScanner
-            open={multiImageMode}
-            onClose={() => setMultiImageMode(false)}
-            onScanComplete={(multiImageResult) => {
-                onScanComplete(multiImageResult);
-                setMultiImageMode(false);
-            }}
-        />
+            {/* Multi-Image Receipt Scanner */}
+            <MultiImageReceiptScanner
+                open={multiImageMode}
+                onClose={() => setMultiImageMode(false)}
+                onScanComplete={(multiImageResult) => {
+                    onScanComplete(multiImageResult);
+                    setMultiImageMode(false);
+                }}
+            />
         </>
     );
 }

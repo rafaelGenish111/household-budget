@@ -80,6 +80,22 @@ export const defaultCategories = [
         isDefault: true,
     },
     {
+        name: 'חסכונות',
+        type: 'expense',
+        subcategories: ['הפקדה חודשית', 'פנסיה', 'קרן השתלמות', 'אחר'],
+        icon: '💰',
+        color: '#9b59b6',
+        isDefault: true,
+    },
+    {
+        name: 'החזרי הלוואות',
+        type: 'expense',
+        subcategories: ['החזר חודשי', 'הלוואה משכנתא', 'הלוואה מהבנק', 'אחר'],
+        icon: '📝',
+        color: '#e74c3c',
+        isDefault: true,
+    },
+    {
         name: 'אחר',
         type: 'expense',
         subcategories: ['שונות'],

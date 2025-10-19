@@ -80,7 +80,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                     maxImages: 10
                 }
             });
-            
+
             setSession(response.data);
             setCurrentPreview(null);
             setLastLines([]);
@@ -95,7 +95,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
 
     const onDrop = async (acceptedFiles) => {
         if (acceptedFiles.length === 0) return;
-        
+
         const file = acceptedFiles[0];
         await captureImage(file);
     };
@@ -111,14 +111,14 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
 
     const captureImage = async (file) => {
         if (!session) return;
-        
+
         setProcessing(true);
         setOverlapStatus(null);
-        
+
         try {
             const formData = new FormData();
             formData.append('image', file);
-            
+
             const response = await api.post(
                 `/multi-receipt/sessions/${session.sessionId}/images`,
                 formData,
@@ -128,28 +128,28 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                     },
                 }
             );
-            
+
             const { parsedData, overlapAnalysis, receiptEndDetected: endDetected, lastLines: newLastLines } = response.data;
-            
+
             // עדכון מצב הסשן
             setSession(prev => ({
                 ...prev,
                 imageCount: response.data.imageCount,
                 status: response.data.sessionStatus
             }));
-            
+
             // עדכון preview
             const reader = new FileReader();
             reader.onload = (e) => setCurrentPreview(e.target.result);
             reader.readAsDataURL(file);
-            
+
             // עדכון שורות אחרונות
             setLastLines(newLastLines);
-            
+
             // עדכון סטטוס חפיפה
             if (overlapAnalysis) {
                 setOverlapStatus(overlapAnalysis);
-                
+
                 // עדכון טיפים בהתבסס על החפיפה
                 if (overlapAnalysis.quality.level === 'poor') {
                     setTips([
@@ -165,10 +165,10 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                     ]);
                 }
             }
-            
+
             // בדיקת סוף חשבונית
             setReceiptEndDetected(endDetected);
-            
+
         } catch (error) {
             console.error('Error capturing image:', error);
             alert(error.response?.data?.error || 'שגיאה בצילום התמונה');
@@ -192,14 +192,14 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
 
     const finishScanning = async () => {
         if (!session) return;
-        
+
         setProcessing(true);
-        
+
         try {
             const response = await api.post(`/multi-receipt/sessions/${session.sessionId}/complete`);
-            
+
             const { mergedResult, validation, confidence } = response.data;
-            
+
             // העברת התוצאות לקומפוננטה האב
             onScanComplete({
                 ...mergedResult,
@@ -209,9 +209,9 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                 imageCount: response.data.imageCount,
                 method: 'multi-image'
             });
-            
+
             handleClose();
-            
+
         } catch (error) {
             console.error('Error completing session:', error);
             alert(error.response?.data?.error || 'שגיאה בהשלמת הסריקה');
@@ -277,9 +277,9 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                                     {getProgressPercentage().toFixed(0)}%
                                 </Typography>
                             </Box>
-                            <LinearProgress 
-                                variant="determinate" 
-                                value={getProgressPercentage()} 
+                            <LinearProgress
+                                variant="determinate"
+                                value={getProgressPercentage()}
                                 sx={{ height: 8, borderRadius: 4 }}
                             />
                         </Box>
@@ -347,18 +347,18 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
 
                                 {/* Overlap Status */}
                                 {overlapStatus && (
-                                    <Alert 
+                                    <Alert
                                         severity={overlapStatus.quality.level === 'excellent' || overlapStatus.quality.level === 'good' ? 'success' : 'warning'}
                                         sx={{ mt: 2 }}
                                         icon={getOverlapStatusIcon()}
                                     >
                                         <Typography variant="subtitle2">
                                             {overlapStatus.quality.level === 'excellent' ? 'חפיפה מעולה!' :
-                                             overlapStatus.quality.level === 'good' ? 'חפיפה טובה' :
-                                             overlapStatus.quality.level === 'fair' ? 'חפיפה בינונית' : 'חפיפה חלשה'}
+                                                overlapStatus.quality.level === 'good' ? 'חפיפה טובה' :
+                                                    overlapStatus.quality.level === 'fair' ? 'חפיפה בינונית' : 'חפיפה חלשה'}
                                         </Typography>
                                         <Typography variant="body2">
-                                            ביטחון: {(overlapStatus.overlap.confidence * 100).toFixed(0)}% | 
+                                            ביטחון: {(overlapStatus.overlap.confidence * 100).toFixed(0)}% |
                                             שורות חופפות: {overlapStatus.overlap.overlapLines.length}
                                         </Typography>
                                     </Alert>
@@ -394,7 +394,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                                             <List dense>
                                                 {lastLines.map((line, i) => (
                                                     <ListItem key={i} sx={{ py: 0.5 }}>
-                                                        <ListItemText 
+                                                        <ListItemText
                                                             primary={line}
                                                             primaryTypographyProps={{ fontSize: '0.875rem' }}
                                                         />
@@ -412,7 +412,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                                         <List dense>
                                             {tips.slice(0, 4).map((tip, i) => (
                                                 <ListItem key={i} sx={{ py: 0.5 }}>
-                                                    <ListItemText 
+                                                    <ListItemText
                                                         primary={tip}
                                                         primaryTypographyProps={{ fontSize: '0.875rem' }}
                                                     />
@@ -435,7 +435,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                             >
                                 📸 צלם תמונה נוספת
                             </Button>
-                            
+
                             <Button
                                 variant="outlined"
                                 startIcon={<Done />}
@@ -445,7 +445,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                             >
                                 ✓ סיימתי לצלם ({session.imageCount} תמונות)
                             </Button>
-                            
+
                             <Button
                                 variant="text"
                                 startIcon={<Visibility />}
@@ -460,7 +460,7 @@ export default function MultiImageReceiptScanner({ open, onClose, onScanComplete
                         {session.imageCount > 0 && (
                             <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
                                 <Typography variant="body2" color="info.main">
-                                    💡 <strong>המשך לצלם:</strong> צלם את המשך החשבונית, כולל את השורה: 
+                                    💡 <strong>המשך לצלם:</strong> צלם את המשך החשבונית, כולל את השורה:
                                     <strong> "{lastLines[lastLines.length - 1]}"</strong>
                                 </Typography>
                             </Box>

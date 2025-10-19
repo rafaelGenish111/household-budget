@@ -11,29 +11,29 @@ import { findOverlap, analyzeOverlapQuality } from './overlapDetector.js';
  */
 export function mergeReceipt(session) {
     const sortedImages = sortImagesByOrder(session.images);
-    
+
     if (sortedImages.length === 0) {
         return createEmptyResult();
     }
-    
+
     if (sortedImages.length === 1) {
         return createSingleImageResult(sortedImages[0]);
     }
-    
+
     // אסטרטגיה 1: נסה למזג לפי חפיפות
     const mergedByOverlap = mergeByOverlap(sortedImages);
-    
+
     // אסטרטגיה 2: אם אין מספיק חפיפות, מזג לפי מיקום
     const mergedByPosition = mergeByPosition(sortedImages);
-    
+
     // בחר את האסטרטגיה עם ה-confidence הגבוה יותר
     const result = mergedByOverlap.confidence > mergedByPosition.confidence
         ? mergedByOverlap
         : mergedByPosition;
-    
+
     // validation נוסף
     result.validation = validateMergedReceipt(result);
-    
+
     return result;
 }
 
@@ -47,40 +47,40 @@ export function mergeByOverlap(images) {
     let allLines = [];
     let totalConfidence = 0;
     let gapsDetected = [];
-    
+
     // התחל עם התמונה הראשונה
     allItems.push(...images[0].parsedData.items || []);
     allLines.push(...images[0].parsedData.allLines || []);
-    
+
     // מזג כל תמונה עם הקודמת
     for (let i = 1; i < images.length; i++) {
         const overlap = findOverlap(
             images[i - 1].parsedData,
             images[i].parsedData
         );
-        
+
         if (overlap.confidence > 0.6) {
             // יש חפיפה טובה - הסר שורות כפולות
             const newLines = (images[i].parsedData.allLines || []).slice(overlap.cutIndex2);
             const newItems = extractItemsFromLines(newLines, images[i].id);
-            
+
             allLines.push(...newLines);
             allItems.push(...newItems);
             totalConfidence += overlap.confidence;
         } else {
             // אין חפיפה - זה בעייתי, נסמן warning
-            console.warn(`Low overlap confidence between images ${i-1} and ${i}: ${overlap.confidence}`);
-            
+            console.warn(`Low overlap confidence between images ${i - 1} and ${i}: ${overlap.confidence}`);
+
             // בכל זאת נוסיף, אבל עם סימון
             allLines.push('--- GAP DETECTED ---');
             allLines.push(...(images[i].parsedData.allLines || []));
             allItems.push(...(images[i].parsedData.items || []));
             totalConfidence += 0.3;  // ציון נמוך
-            
-            gapsDetected.push(`Between image ${i-1} and ${i}`);
+
+            gapsDetected.push(`Between image ${i - 1} and ${i}`);
         }
     }
-    
+
     return {
         items: deduplicateItems(allItems),
         allLines,
@@ -107,12 +107,12 @@ export function mergeByOverlap(images) {
 export function mergeByPosition(images) {
     let allItems = [];
     let allLines = [];
-    
+
     images.forEach(img => {
         allItems.push(...(img.parsedData.items || []));
         allLines.push(...(img.parsedData.allLines || []));
     });
-    
+
     return {
         items: smartDeduplication(allItems),
         allLines,
@@ -139,18 +139,18 @@ export function mergeByPosition(images) {
 export function deduplicateItems(items) {
     const unique = [];
     const seen = new Set();
-    
+
     for (const item of items) {
         const key = `${item.description}_${item.price}`;
         const fuzzyKey = fuzzyItemKey(item);
-        
+
         if (!seen.has(key) && !seen.has(fuzzyKey)) {
             unique.push(item);
             seen.add(key);
             seen.add(fuzzyKey);
         }
     }
-    
+
     return unique;
 }
 
@@ -161,29 +161,29 @@ export function deduplicateItems(items) {
  */
 export function smartDeduplication(items) {
     const clusters = [];
-    
+
     for (const item of items) {
         let foundCluster = false;
-        
+
         for (const cluster of clusters) {
             const representative = cluster[0];
             const similarity = itemSimilarity(item, representative);
-            
+
             if (similarity > 0.85) {
                 cluster.push(item);
                 foundCluster = true;
                 break;
             }
         }
-        
+
         if (!foundCluster) {
             clusters.push([item]);
         }
     }
-    
+
     // מכל cluster קח את הפריט עם ה-confidence הגבוה ביותר
-    return clusters.map(cluster => 
-        cluster.reduce((best, current) => 
+    return clusters.map(cluster =>
+        cluster.reduce((best, current) =>
             (current.confidence || 0) > (best.confidence || 0) ? current : best
         )
     );
@@ -198,7 +198,7 @@ export function smartDeduplication(items) {
 export function itemSimilarity(item1, item2) {
     const descSimilarity = lineSimilarity(item1.description, item2.description);
     const priceSimilarity = Math.abs(item1.price - item2.price) < 0.01 ? 1 : 0;
-    
+
     return (descSimilarity * 0.7) + (priceSimilarity * 0.3);
 }
 
@@ -210,17 +210,17 @@ export function itemSimilarity(item1, item2) {
  */
 function lineSimilarity(line1, line2) {
     if (!line1 || !line2) return 0;
-    
+
     const normalize = (str) => str.trim().toLowerCase().replace(/\s+/g, ' ');
     const norm1 = normalize(line1);
     const norm2 = normalize(line2);
-    
+
     if (norm1 === norm2) return 1.0;
-    
+
     // Levenshtein distance פשוט
     const distance = levenshteinDistance(norm1, norm2);
     const maxLen = Math.max(norm1.length, norm2.length);
-    
+
     return maxLen === 0 ? 1.0 : 1 - (distance / maxLen);
 }
 
@@ -232,15 +232,15 @@ function lineSimilarity(line1, line2) {
  */
 function levenshteinDistance(str1, str2) {
     const matrix = [];
-    
+
     for (let i = 0; i <= str2.length; i++) {
         matrix[i] = [i];
     }
-    
+
     for (let j = 0; j <= str1.length; j++) {
         matrix[0][j] = j;
     }
-    
+
     for (let i = 1; i <= str2.length; i++) {
         for (let j = 1; j <= str1.length; j++) {
             if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
@@ -254,7 +254,7 @@ function levenshteinDistance(str1, str2) {
             }
         }
     }
-    
+
     return matrix[str2.length][str1.length];
 }
 
@@ -282,7 +282,7 @@ function extractItemsFromLines(lines, sourceImageId) {
         /^(\d+)\s*x\s*(.+?)\s+(\d+\.?\d{0,2})\s*$/,
         /^(.+?)\s+(\d+\.?\d{0,2})\s*x\s*(\d+)\s*$/
     ];
-    
+
     for (const line of lines) {
         for (const pattern of itemPatterns) {
             const match = line.match(pattern);
@@ -302,7 +302,7 @@ function extractItemsFromLines(lines, sourceImageId) {
             }
         }
     }
-    
+
     return items;
 }
 
@@ -317,7 +317,7 @@ function findTotal(lines) {
         'סכום לתשלום', 'לתשלום', 'סכום סופי',
         'total', 'grand total', 'balance due'
     ];
-    
+
     for (const line of lines) {
         const lowerLine = line.toLowerCase();
         if (totalKeywords.some(keyword => lowerLine.includes(keyword.toLowerCase()))) {
@@ -328,7 +328,7 @@ function findTotal(lines) {
             }
         }
     }
-    
+
     return null;
 }
 
@@ -345,7 +345,7 @@ function extractBusinessInfo(lines) {
         phone: null,
         email: null
     };
-    
+
     // חיפוש שם עסק בשורות הראשונות
     for (let i = 0; i < Math.min(5, lines.length); i++) {
         const line = lines[i].trim();
@@ -354,7 +354,7 @@ function extractBusinessInfo(lines) {
             break;
         }
     }
-    
+
     // חיפוש ח.ע.מ
     const taxIdPattern = /ח\.ע\.מ[:\s]*(\d{9})|ע\.מ[:\s]*(\d{9})/;
     for (const line of lines) {
@@ -364,7 +364,7 @@ function extractBusinessInfo(lines) {
             break;
         }
     }
-    
+
     return businessInfo;
 }
 
@@ -378,23 +378,23 @@ function extractDate(lines) {
         /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/,
         /(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/
     ];
-    
+
     for (const line of lines) {
         for (const pattern of patterns) {
             const match = line.match(pattern);
             if (match) {
                 let day, month, year;
-                
+
                 if (match[1].length === 4) {
                     [, year, month, day] = match;
                 } else {
                     [, day, month, year] = match;
                 }
-                
+
                 if (year.length === 2) {
                     year = '20' + year;
                 }
-                
+
                 const date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
                 if (!isNaN(date.getTime())) {
                     return date;
@@ -402,7 +402,7 @@ function extractDate(lines) {
             }
         }
     }
-    
+
     return null;
 }
 
@@ -467,13 +467,13 @@ function createSingleImageResult(image) {
  */
 export function validateMergedReceipt(mergedResult) {
     const issues = [];
-    
+
     // בדיקה 1: סכום פריטים מול סכום כולל
     if (mergedResult.total && mergedResult.items.length > 0) {
         const itemsSum = mergedResult.items.reduce((sum, item) => sum + item.price, 0);
         const difference = Math.abs(itemsSum - mergedResult.total);
         const percentDiff = (difference / mergedResult.total) * 100;
-        
+
         if (percentDiff > 5) {
             issues.push({
                 type: 'sum_mismatch',
@@ -483,7 +483,7 @@ export function validateMergedReceipt(mergedResult) {
             });
         }
     }
-    
+
     // בדיקה 2: זיהוי gaps אפשריים
     if (mergedResult.gapsDetected.length > 0) {
         issues.push({
@@ -493,7 +493,7 @@ export function validateMergedReceipt(mergedResult) {
             details: { gaps: mergedResult.gapsDetected }
         });
     }
-    
+
     // בדיקה 3: ביטחון נמוך
     if (mergedResult.confidence < 0.5) {
         issues.push({
@@ -503,7 +503,7 @@ export function validateMergedReceipt(mergedResult) {
             details: { confidence: mergedResult.confidence }
         });
     }
-    
+
     // בדיקה 4: אין פריטים
     if (mergedResult.items.length === 0) {
         issues.push({
@@ -513,7 +513,7 @@ export function validateMergedReceipt(mergedResult) {
             details: {}
         });
     }
-    
+
     // בדיקה 5: אין סכום כולל
     if (!mergedResult.total) {
         issues.push({
@@ -523,10 +523,10 @@ export function validateMergedReceipt(mergedResult) {
             details: {}
         });
     }
-    
+
     const recommendations = generateRecommendations(issues);
     const overallScore = calculateOverallScore(mergedResult, issues);
-    
+
     return {
         isValid: issues.filter(i => i.severity === 'high').length === 0,
         issues,
@@ -542,23 +542,23 @@ export function validateMergedReceipt(mergedResult) {
  */
 function generateRecommendations(issues) {
     const recommendations = [];
-    
+
     if (issues.some(i => i.type === 'gap_detected')) {
         recommendations.push('צלם מחדש עם חפיפה טובה יותר בין התמונות');
     }
-    
+
     if (issues.some(i => i.type === 'sum_mismatch' && i.severity === 'high')) {
         recommendations.push('וודא שצילמת את כל החשבונית כולל הסכום הסופי');
     }
-    
+
     if (issues.some(i => i.type === 'low_confidence')) {
         recommendations.push('נסה לצלם שוב את החשבונית באור טוב יותר');
     }
-    
+
     if (issues.some(i => i.type === 'no_items')) {
         recommendations.push('ודא שהטקסט בחשבונית קריא וברור');
     }
-    
+
     return recommendations;
 }
 
@@ -570,19 +570,19 @@ function generateRecommendations(issues) {
  */
 function calculateOverallScore(mergedResult, issues) {
     let score = mergedResult.confidence;
-    
+
     // הפחתה עבור בעיות חמורות
     const highSeverityIssues = issues.filter(i => i.severity === 'high').length;
     const mediumSeverityIssues = issues.filter(i => i.severity === 'medium').length;
-    
+
     score -= (highSeverityIssues * 0.3);
     score -= (mediumSeverityIssues * 0.1);
-    
+
     // בונוס עבור תוצאות טובות
     if (mergedResult.items.length > 0) score += 0.1;
     if (mergedResult.total) score += 0.1;
     if (mergedResult.businessInfo.name) score += 0.05;
-    
+
     return Math.max(0, Math.min(1, score));
 }
 

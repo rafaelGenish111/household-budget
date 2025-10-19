@@ -19,10 +19,10 @@ function detectReceiptEnd(parsedData) {
         'תאריך', 'תאריך:', 'date:',
         'ח.ע.מ', 'ע.מ', 'tax id'
     ];
-    
+
     const lastLines = parsedData.allLines.slice(-5);
-    return lastLines.some(line => 
-        endKeywords.some(keyword => 
+    return lastLines.some(line =>
+        endKeywords.some(keyword =>
             line.toLowerCase().includes(keyword.toLowerCase())
         )
     );
@@ -38,7 +38,7 @@ function getLastLines(allLines, count = 3) {
 export const createSession = async (req, res) => {
     try {
         const { settings = {} } = req.body;
-        
+
         const sessionId = uuidv4();
         const session = new ReceiptSession({
             sessionId,
@@ -52,9 +52,9 @@ export const createSession = async (req, res) => {
                 ...settings
             }
         });
-        
+
         await session.save();
-        
+
         res.status(201).json({
             sessionId: session.sessionId,
             status: session.status,
@@ -63,7 +63,7 @@ export const createSession = async (req, res) => {
             imageCount: 0,
             canAddMore: true
         });
-        
+
     } catch (error) {
         console.error('Error creating receipt session:', error);
         res.status(500).json({
@@ -79,46 +79,46 @@ export const createSession = async (req, res) => {
 export const addImageToSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        
+
         if (!req.file) {
             return res.status(400).json({ error: 'לא הועלה קובץ' });
         }
-        
+
         // מצא את הסשן
         const session = await ReceiptSession.findOne({
             sessionId,
             household: req.user.household,
             user: req.user._id
         });
-        
+
         if (!session) {
             return res.status(404).json({ error: 'סשן לא נמצא' });
         }
-        
+
         if (session.images.length >= session.settings.maxImages) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'הגעת למספר המקסימלי של תמונות',
                 maxImages: session.settings.maxImages
             });
         }
-        
+
         // עיבוד התמונה
         const fileBuffer = req.file.buffer;
         const mimeType = req.file.mimetype;
-        
+
         // עיבוד מקדים
         const preprocessingResult = await preprocessImage(fileBuffer);
-        
+
         // סריקה עם OCR
         const scanResult = await scanReceipt(preprocessingResult.processedBuffer, mimeType);
-        
+
         if (scanResult.fallback) {
             return res.status(400).json({
                 error: 'Vision API לא זמין',
                 message: 'נדרש להפעיל Google Vision API לסריקת תמונות'
             });
         }
-        
+
         // ניתוח הנתונים
         const parsedData = {
             ...scanResult,
@@ -128,14 +128,14 @@ export const addImageToSession = async (req, res) => {
             businessInfo: scanResult.businessInfo || {},
             date: scanResult.date
         };
-        
+
         // בדיקת חפיפה עם התמונה הקודמת
         let overlapAnalysis = null;
         if (session.images.length > 0) {
             const lastImage = session.images[session.images.length - 1];
             overlapAnalysis = analyzeOverlapQuality(lastImage.parsedData, parsedData);
         }
-        
+
         // הוסף את התמונה החדשה
         const newImage = {
             id: uuidv4(),
@@ -145,13 +145,13 @@ export const addImageToSession = async (req, res) => {
             parsedData: parsedData,
             overlappingLines: overlapAnalysis ? overlapAnalysis.overlap.overlapLines : []
         };
-        
+
         session.images.push(newImage);
         await session.save();
-        
+
         // בדיקה אם זוהה סוף החשבונית
         const receiptEndDetected = detectReceiptEnd(parsedData);
-        
+
         res.json({
             imageId: newImage.id,
             order: newImage.order,
@@ -163,7 +163,7 @@ export const addImageToSession = async (req, res) => {
             lastLines: getLastLines(parsedData.allLines, 3),
             imageCount: session.images.length
         });
-        
+
     } catch (error) {
         console.error('Error adding image to session:', error);
         res.status(500).json({
@@ -179,40 +179,40 @@ export const addImageToSession = async (req, res) => {
 export const completeSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        
+
         const session = await ReceiptSession.findOne({
             sessionId,
             household: req.user.household,
             user: req.user._id
         });
-        
+
         if (!session) {
             return res.status(404).json({ error: 'סשן לא נמצא' });
         }
-        
+
         if (session.images.length === 0) {
             return res.status(400).json({ error: 'אין תמונות בסשן' });
         }
-        
+
         // עדכון סטטוס לעיבוד
         session.status = 'processing';
         await session.save();
-        
+
         try {
             // מיזוג הנתונים
             const mergedResult = mergeReceipt(session);
-            
+
             // השלמת הסשן
             session.status = 'completed';
             session.mergedResult = mergedResult;
             session.confidence = mergedResult.confidence;
             session.completedAt = new Date();
             await session.save();
-            
+
             // זיהוי קטגוריה
             const category = detectCategory(mergedResult.businessInfo.name || '');
             const subcategory = category === 'מזון' ? 'סופרמרקט' : 'אחר';
-            
+
             res.json({
                 sessionId: session.sessionId,
                 status: session.status,
@@ -226,21 +226,21 @@ export const completeSession = async (req, res) => {
                 completedAt: session.completedAt,
                 imageCount: session.images.length
             });
-            
+
         } catch (mergeError) {
             console.error('Error merging receipt:', mergeError);
-            
+
             // עדכון סטטוס לכישלון
             session.status = 'failed';
             session.error = mergeError.message;
             await session.save();
-            
+
             res.status(500).json({
                 error: 'שגיאה במיזוג החשבונית',
                 details: mergeError.message
             });
         }
-        
+
     } catch (error) {
         console.error('Error completing receipt session:', error);
         res.status(500).json({
@@ -256,27 +256,27 @@ export const completeSession = async (req, res) => {
 export const cancelSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        
+
         const session = await ReceiptSession.findOne({
             sessionId,
             household: req.user.household,
             user: req.user._id
         });
-        
+
         if (!session) {
             return res.status(404).json({ error: 'סשן לא נמצא' });
         }
-        
+
         session.status = 'cancelled';
         session.updatedAt = new Date();
         await session.save();
-        
+
         res.json({
             sessionId: session.sessionId,
             status: session.status,
             cancelledAt: session.updatedAt
         });
-        
+
     } catch (error) {
         console.error('Error cancelling receipt session:', error);
         res.status(500).json({
@@ -293,7 +293,7 @@ export const getActiveSessions = async (req, res) => {
             user: req.user._id,
             status: { $in: ['capturing', 'processing'] }
         }).sort({ createdAt: -1 });
-        
+
         res.json(sessions.map(session => ({
             sessionId: session.sessionId,
             status: session.status,
@@ -301,13 +301,13 @@ export const getActiveSessions = async (req, res) => {
             createdAt: session.createdAt,
             updatedAt: session.updatedAt,
             lastLines: getLastLines(
-                session.images.length > 0 
+                session.images.length > 0
                     ? session.images[session.images.length - 1].parsedData.allLines || []
-                    : [], 
+                    : [],
                 2
             )
         })));
-        
+
     } catch (error) {
         console.error('Error getting active sessions:', error);
         res.status(500).json({
@@ -320,18 +320,18 @@ export const getActiveSessions = async (req, res) => {
 export const getCompletedSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        
+
         const session = await ReceiptSession.findOne({
             sessionId,
             household: req.user.household,
             user: req.user._id,
             status: 'completed'
         });
-        
+
         if (!session) {
             return res.status(404).json({ error: 'סשן לא נמצא או לא הושלם' });
         }
-        
+
         res.json({
             sessionId: session.sessionId,
             status: session.status,
@@ -341,7 +341,7 @@ export const getCompletedSession = async (req, res) => {
             mergedResult: session.mergedResult,
             completedAt: session.completedAt
         });
-        
+
     } catch (error) {
         console.error('Error getting completed session:', error);
         res.status(500).json({

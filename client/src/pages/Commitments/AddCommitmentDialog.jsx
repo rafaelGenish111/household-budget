@@ -8,6 +8,8 @@ import {
     TextField,
     Grid,
     CircularProgress,
+    Checkbox,
+    FormControlLabel,
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -23,6 +25,10 @@ const schema = yup.object({
     monthlyPayment: yup.number().required('נא להזין תשלום חודשי').positive('התשלום חייב להיות חיובי'),
     paymentsLeft: yup.number().required('נא להזין מספר תשלומים').positive('המספר חייב להיות חיובי'),
     startDate: yup.date().required('נא לבחור תאריך'),
+    // 🆕 שדות חדשים
+    isRecurring: yup.boolean().default(true),
+    recurringDay: yup.number().nullable().min(1, 'היום חייב להיות בין 1-31').max(31, 'היום חייב להיות בין 1-31'),
+    recurringCategory: yup.string().default('החזרי הלוואות'),
 });
 
 const AddCommitmentDialog = ({ open, onClose, commitment }) => {
@@ -33,6 +39,7 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
         control,
         handleSubmit,
         reset,
+        watch,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(schema),
@@ -47,8 +54,14 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                     format(new Date(commitment.startDate), 'yyyy-MM-dd') : 
                     format(new Date(), 'yyyy-MM-dd')) : 
                 format(new Date(), 'yyyy-MM-dd'),
+            // 🆕 ערכי ברירת מחדל
+            isRecurring: commitment?.isRecurring !== undefined ? commitment.isRecurring : true,
+            recurringDay: commitment?.recurringDay || 1,
+            recurringCategory: commitment?.recurringCategory || 'החזרי הלוואות',
         },
     });
+
+    const watchIsRecurring = watch('isRecurring');
 
     useEffect(() => {
         if (open && commitment) {
@@ -61,6 +74,9 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                 startDate: commitment.startDate && !isNaN(new Date(commitment.startDate).getTime()) ? 
                     format(new Date(commitment.startDate), 'yyyy-MM-dd') : 
                     format(new Date(), 'yyyy-MM-dd'),
+                isRecurring: commitment.isRecurring !== undefined ? commitment.isRecurring : true,
+                recurringDay: commitment.recurringDay || 1,
+                recurringCategory: commitment.recurringCategory || 'החזרי הלוואות',
             });
         } else if (open && !commitment) {
             reset({
@@ -70,6 +86,9 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                 monthlyPayment: 0,
                 paymentsLeft: 0,
                 startDate: format(new Date(), 'yyyy-MM-dd'),
+                isRecurring: true,
+                recurringDay: 1,
+                recurringCategory: 'החזרי הלוואות',
             });
         }
     }, [open, commitment, reset]);
@@ -201,6 +220,65 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                                 )}
                             />
                         </Grid>
+
+                        {/* 🆕 תשלום חודשי אוטומטי */}
+                        <Grid item xs={12}>
+                            <Controller
+                                name="isRecurring"
+                                control={control}
+                                render={({ field }) => (
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox 
+                                                {...field} 
+                                                checked={field.value !== false}
+                                                onChange={(e) => field.onChange(e.target.checked)}
+                                            />
+                                        }
+                                        label="📝 תשלום חודשי אוטומטי"
+                                    />
+                                )}
+                            />
+                        </Grid>
+
+                        {watchIsRecurring && (
+                            <>
+                                <Grid item xs={12} sm={6}>
+                                    <Controller
+                                        name="recurringDay"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                type="number"
+                                                label="יום בחודש לחיוב"
+                                                helperText="בחר יום בין 1 ל-31"
+                                                InputProps={{
+                                                    inputProps: { min: 1, max: 31 }
+                                                }}
+                                                error={!!errors.recurringDay}
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+
+                                <Grid item xs={12} sm={6}>
+                                    <Controller
+                                        name="recurringCategory"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                label="קטגוריה להוצאה"
+                                                helperText="הקטגוריה שתופיע בהוצאות"
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+                            </>
+                        )}
                     </Grid>
                 </DialogContent>
                 <DialogActions>
