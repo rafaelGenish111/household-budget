@@ -29,28 +29,28 @@ export const ThemeProvider = ({ children }) => {
             palette: {
                 mode: currentTheme === 'dark' || currentTheme === 'neon' ? 'dark' : 'light',
                 primary: {
-                    main: categoryTheme.palette.primary,
-                    light: categoryTheme.palette.primary,
-                    dark: categoryTheme.palette.primary,
+                    main: categoryTheme.palette.primary.main,
+                    light: categoryTheme.palette.primary.light,
+                    dark: categoryTheme.palette.primary.dark,
                     contrastText: '#ffffff',
                 },
                 secondary: {
-                    main: categoryTheme.palette.secondary,
-                    light: categoryTheme.palette.secondary,
-                    dark: categoryTheme.palette.secondary,
+                    main: categoryTheme.palette.secondary.main,
+                    light: categoryTheme.palette.secondary.light,
+                    dark: categoryTheme.palette.secondary.dark,
                     contrastText: '#ffffff',
                 },
                 success: {
-                    main: categoryTheme.palette.success,
+                    main: categoryTheme.palette.success.main,
                 },
                 error: {
-                    main: categoryTheme.palette.error,
+                    main: categoryTheme.palette.error.main,
                 },
                 warning: {
-                    main: categoryTheme.palette.warning,
+                    main: categoryTheme.palette.warning.main,
                 },
                 info: {
-                    main: categoryTheme.palette.info,
+                    main: categoryTheme.palette.info.main,
                 },
                 background: {
                     default: categoryTheme.palette.background.default,
