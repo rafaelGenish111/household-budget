@@ -34,8 +34,8 @@ const processRecurringPayment = async (item, type) => {
         }
 
         // קביעת הסכום
-        const amount = type === 'saving' 
-            ? item.monthlyContribution 
+        const amount = type === 'saving'
+            ? item.monthlyContribution
             : item.monthlyPayment;
 
         // אם הסכום 0 או שלילי - אין מה לעבד
@@ -80,7 +80,7 @@ const processRecurringPayment = async (item, type) => {
         await item.save();
 
         console.log(`✅ נוצרה הוצאה: ${item.name} - ₪${amount.toLocaleString()}`);
-        
+
         return transaction;
 
     } catch (error) {
@@ -129,7 +129,7 @@ export const processAllRecurringPayments = async () => {
         }
 
         console.log(`✅ סיימנו! עובדו ${processedCount} תשלומים חוזרים\n`);
-        
+
         return processedCount;
 
     } catch (error) {
@@ -146,7 +146,7 @@ export const startRecurringPaymentsJob = () => {
     console.log('⚠️  Recurring Payments Cron Job מושבת זמנית');
     console.log('⚠️  יש להתקין node-cron כדי להפעיל תשלומים אוטומטיים');
     console.log('💡 ניתן להשתמש ב-API endpoint: POST /api/recurring-payments/process-now');
-    
+
     // TODO: הפעל את זה אחרי התקנת node-cron
     /*
     cron.schedule('1 0 * * *', async () => {
