@@ -3,12 +3,28 @@ export const categoryThemes = {
     light: {
         name: 'בהיר',
         palette: {
-            primary: '#2196f3',
-            secondary: '#f50057',
-            success: '#4caf50',
-            error: '#f44336',
-            warning: '#ff9800',
-            info: '#00bcd4',
+            primary: {
+                main: '#2196f3',
+                light: '#64b5f6',
+                dark: '#1976d2',
+            },
+            secondary: {
+                main: '#f50057',
+                light: '#ff5983',
+                dark: '#c51162',
+            },
+            success: {
+                main: '#4caf50',
+            },
+            error: {
+                main: '#f44336',
+            },
+            warning: {
+                main: '#ff9800',
+            },
+            info: {
+                main: '#00bcd4',
+            },
             background: {
                 default: '#f5f5f5',
                 paper: '#ffffff',
@@ -40,12 +56,28 @@ export const categoryThemes = {
     dark: {
         name: 'כהה',
         palette: {
-            primary: '#90caf9',
-            secondary: '#f48fb1',
-            success: '#66bb6a',
-            error: '#f44336',
-            warning: '#ffa726',
-            info: '#29b6f6',
+            primary: {
+                main: '#90caf9',
+                light: '#c3fdff',
+                dark: '#5d99c6',
+            },
+            secondary: {
+                main: '#f48fb1',
+                light: '#ffc1e3',
+                dark: '#bf5f82',
+            },
+            success: {
+                main: '#66bb6a',
+            },
+            error: {
+                main: '#f44336',
+            },
+            warning: {
+                main: '#ffa726',
+            },
+            info: {
+                main: '#29b6f6',
+            },
             background: {
                 default: '#121212',
                 paper: '#1e1e1e',
@@ -77,12 +109,28 @@ export const categoryThemes = {
     colorful: {
         name: 'צבעוני',
         palette: {
-            primary: '#ff6b6b',
-            secondary: '#4ecdc4',
-            success: '#95e1d3',
-            error: '#f38181',
-            warning: '#feca57',
-            info: '#48dbfb',
+            primary: {
+                main: '#ff6b6b',
+                light: '#ff9e9e',
+                dark: '#e53935',
+            },
+            secondary: {
+                main: '#4ecdc4',
+                light: '#80e5de',
+                dark: '#26a69a',
+            },
+            success: {
+                main: '#95e1d3',
+            },
+            error: {
+                main: '#f38181',
+            },
+            warning: {
+                main: '#feca57',
+            },
+            info: {
+                main: '#48dbfb',
+            },
             background: {
                 default: '#f8f9fa',
                 paper: '#ffffff',
@@ -114,12 +162,28 @@ export const categoryThemes = {
     minimalist: {
         name: 'מינימליסטי',
         palette: {
-            primary: '#333333',
-            secondary: '#666666',
-            success: '#28a745',
-            error: '#dc3545',
-            warning: '#ffc107',
-            info: '#17a2b8',
+            primary: {
+                main: '#333333',
+                light: '#666666',
+                dark: '#000000',
+            },
+            secondary: {
+                main: '#666666',
+                light: '#999999',
+                dark: '#333333',
+            },
+            success: {
+                main: '#28a745',
+            },
+            error: {
+                main: '#dc3545',
+            },
+            warning: {
+                main: '#ffc107',
+            },
+            info: {
+                main: '#17a2b8',
+            },
             background: {
                 default: '#ffffff',
                 paper: '#fafafa',
@@ -151,12 +215,28 @@ export const categoryThemes = {
     pastel: {
         name: 'פסטל',
         palette: {
-            primary: '#d4a5a5',
-            secondary: '#9ec1cf',
-            success: '#b5d99c',
-            error: '#ffb3ba',
-            warning: '#ffffba',
-            info: '#bae1ff',
+            primary: {
+                main: '#d4a5a5',
+                light: '#f0d0d0',
+                dark: '#b88a8a',
+            },
+            secondary: {
+                main: '#9ec1cf',
+                light: '#c7dde8',
+                dark: '#7aa8b8',
+            },
+            success: {
+                main: '#b5d99c',
+            },
+            error: {
+                main: '#ffb3ba',
+            },
+            warning: {
+                main: '#ffffba',
+            },
+            info: {
+                main: '#bae1ff',
+            },
             background: {
                 default: '#fef6f6',
                 paper: '#ffffff',
@@ -188,12 +268,28 @@ export const categoryThemes = {
     neon: {
         name: 'ניאון',
         palette: {
-            primary: '#ff00ff',
-            secondary: '#00ffff',
-            success: '#39ff14',
-            error: '#ff073a',
-            warning: '#ffff00',
-            info: '#00d9ff',
+            primary: {
+                main: '#ff00ff',
+                light: '#ff66ff',
+                dark: '#cc00cc',
+            },
+            secondary: {
+                main: '#00ffff',
+                light: '#66ffff',
+                dark: '#00cccc',
+            },
+            success: {
+                main: '#39ff14',
+            },
+            error: {
+                main: '#ff073a',
+            },
+            warning: {
+                main: '#ffff00',
+            },
+            info: {
+                main: '#00d9ff',
+            },
             background: {
                 default: '#0a0a0a',
                 paper: '#1a1a1a',

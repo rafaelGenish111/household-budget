@@ -28,7 +28,38 @@ export const ThemeProvider = ({ children }) => {
             direction: 'rtl',
             palette: {
                 mode: currentTheme === 'dark' || currentTheme === 'neon' ? 'dark' : 'light',
-                ...categoryTheme.palette,
+                primary: {
+                    main: categoryTheme.palette.primary,
+                    light: categoryTheme.palette.primary,
+                    dark: categoryTheme.palette.primary,
+                    contrastText: '#ffffff',
+                },
+                secondary: {
+                    main: categoryTheme.palette.secondary,
+                    light: categoryTheme.palette.secondary,
+                    dark: categoryTheme.palette.secondary,
+                    contrastText: '#ffffff',
+                },
+                success: {
+                    main: categoryTheme.palette.success,
+                },
+                error: {
+                    main: categoryTheme.palette.error,
+                },
+                warning: {
+                    main: categoryTheme.palette.warning,
+                },
+                info: {
+                    main: categoryTheme.palette.info,
+                },
+                background: {
+                    default: categoryTheme.palette.background.default,
+                    paper: categoryTheme.palette.background.paper,
+                },
+                text: {
+                    primary: categoryTheme.palette.text.primary,
+                    secondary: categoryTheme.palette.text.secondary,
+                },
             },
             typography: {
                 fontFamily: [
