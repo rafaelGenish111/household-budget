@@ -7,13 +7,13 @@ import {
     Chip,
     Tooltip
 } from '@mui/material';
-import {
-    ChevronLeft,
-    ChevronRight,
+import { 
+    ChevronLeft, 
+    ChevronRight, 
     Today,
     ViewWeek,
     CalendarMonth,
-    CalendarViewYear
+    CalendarToday
 } from '@mui/icons-material';
 import { useTimeRange } from '../../hooks/useTimeRange';
 
@@ -31,7 +31,7 @@ const TimeRangeSelector = () => {
         switch (range) {
             case 'week': return <ViewWeek />;
             case 'month': return <CalendarMonth />;
-            case 'year': return <CalendarViewYear />;
+            case 'year': return <CalendarToday />;
             default: return <CalendarMonth />;
         }
     };
