@@ -23,8 +23,7 @@ const TimeRangeSelector = () => {
         timeRangeConfig,
         changeRange,
         goToToday,
-        isCurrentPeriod,
-        navigation
+        isCurrentPeriod
     } = useTimeRange();
 
     const getRangeIcon = (range) => {
@@ -92,7 +91,7 @@ const TimeRangeSelector = () => {
                 {/* Previous Button */}
                 <Tooltip title="תקופה קודמת">
                     <IconButton
-                        onClick={navigation.previous}
+                        onClick={timeRangeConfig.navigation?.previous}
                         size="small"
                         sx={{
                             backgroundColor: 'background.paper',
@@ -138,8 +137,8 @@ const TimeRangeSelector = () => {
                 {/* Next Button */}
                 <Tooltip title="תקופה הבאה">
                     <IconButton
-                        onClick={navigation.next}
-                        disabled={!navigation.canGoNext}
+                        onClick={timeRangeConfig.navigation?.next}
+                        disabled={!timeRangeConfig.navigation?.canGoNext}
                         size="small"
                         sx={{
                             backgroundColor: 'background.paper',
