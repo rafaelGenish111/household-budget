@@ -1,4 +1,4 @@
-import cron from 'node-cron';
+// import cron from 'node-cron'; // Temporarily disabled due to installation issues
 import Saving from '../models/Saving.js';
 import Commitment from '../models/Commitment.js';
 import Transaction from '../models/Transaction.js';
@@ -140,10 +140,15 @@ export const processAllRecurringPayments = async () => {
 
 /**
  * הפעלת Cron Job - רץ כל יום בחצות ואחת
+ * זמנית מושבת עד להתקנת node-cron
  */
 export const startRecurringPaymentsJob = () => {
-    // רץ כל יום בשעה 00:01 (1 דקה אחרי חצות)
-    // פורמט: דקה שעה יום-בחודש חודש יום-בשבוע
+    console.log('⚠️  Recurring Payments Cron Job מושבת זמנית');
+    console.log('⚠️  יש להתקין node-cron כדי להפעיל תשלומים אוטומטיים');
+    console.log('💡 ניתן להשתמש ב-API endpoint: POST /api/recurring-payments/process-now');
+    
+    // TODO: הפעל את זה אחרי התקנת node-cron
+    /*
     cron.schedule('1 0 * * *', async () => {
         console.log('\n⏰ ================================');
         console.log('⏰ Cron Job: תשלומים חוזרים התחיל');
@@ -152,7 +157,5 @@ export const startRecurringPaymentsJob = () => {
     }, {
         timezone: "Asia/Jerusalem"
     });
-
-    console.log('✅ Recurring Payments Cron Job הופעל בהצלחה!');
-    console.log('⏰ ירוץ כל יום בשעה 00:01 (זמן ישראל)');
+    */
 };
