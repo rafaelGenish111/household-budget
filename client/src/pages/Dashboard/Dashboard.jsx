@@ -78,14 +78,14 @@ const Dashboard = () => {
                 getTrendData(startDate, endDate, timeRangeConfig.groupBy)
             ]);
 
-            setTimeRangeStats(statsResponse.data);
-            setCategoryBreakdown(categoryResponse.data.breakdown || []);
-            setTrendData(trendResponse.data.trends || []);
+            setTimeRangeStats(statsResponse?.success ? statsResponse : null);
+            setCategoryBreakdown(categoryResponse?.breakdown || []);
+            setTrendData(trendResponse?.trends || []);
 
             // Fetch comparison data
             const { previousStart, previousEnd } = getPreviousPeriodDates(startDate, endDate, currentRange);
             const comparisonResponse = await getComparison(startDate, endDate, previousStart, previousEnd);
-            setComparisonData(comparisonResponse.data);
+            setComparisonData(comparisonResponse?.success ? comparisonResponse : null);
 
         } catch (err) {
             console.error('Error fetching statistics:', err);
