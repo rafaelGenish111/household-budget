@@ -7,9 +7,9 @@ import {
     Chip,
     Tooltip
 } from '@mui/material';
-import { 
-    ChevronLeft, 
-    ChevronRight, 
+import {
+    ChevronLeft,
+    ChevronRight,
     Today,
     ViewWeek,
     CalendarMonth,

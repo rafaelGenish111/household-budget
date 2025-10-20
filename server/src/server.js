@@ -19,6 +19,7 @@ import aiRoutes from './routes/ai.js';
 import receiptRoutes from './routes/receipts.js';
 import multiImageReceiptRoutes from './routes/multiImageReceipt.js';
 import recurringPaymentsRoutes from './routes/recurringPayments.js';
+import debtRoutes from './routes/debts.js';
 import statisticsRoutes from './routes/statistics.js';
 import { startRecurringPaymentsJob } from './jobs/recurringPayments.js';
 import path from 'path';
@@ -143,6 +144,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/multi-receipt', multiImageReceiptRoutes);
 app.use('/api/recurring-payments', recurringPaymentsRoutes);
+app.use('/api/debts', debtRoutes);
 app.use('/api/statistics', statisticsRoutes);
 
 // Serve static files (uploads)
