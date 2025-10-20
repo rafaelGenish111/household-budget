@@ -67,14 +67,26 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
     }, [commitment, reset, open]);
 
     const onSubmit = async (data) => {
+        console.log('onSubmit called with data:', data);
         setIsSubmitting(true);
         try {
             const submitData = { ...data, endDate: data.isTimeLimited && data.endDate ? data.endDate : null };
-            if (commitment?._id) await dispatch(updateCommitment({ id: commitment._id, data: submitData }));
-            else await dispatch(createCommitment(submitData));
+            console.log('Submitting data:', submitData);
+            if (commitment?._id) {
+                console.log('Updating commitment:', commitment._id);
+                await dispatch(updateCommitment({ id: commitment._id, data: submitData }));
+            } else {
+                console.log('Creating new commitment');
+                await dispatch(createCommitment(submitData));
+            }
+            console.log('Success! Closing dialog');
             onClose();
             reset();
-        } finally { setIsSubmitting(false); }
+        } catch (error) {
+            console.error('Error in onSubmit:', error);
+        } finally { 
+            setIsSubmitting(false); 
+        }
     };
 
     const expenseCategories = categories.filter((cat) => cat.type === 'expense');
@@ -161,7 +173,7 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose} disabled={isSubmitting}>ביטול</Button>
-                    <Button type="submit" variant="contained" disabled={isSubmitting} onClick={handleSubmit(onSubmit)}>{isSubmitting ? 'שומר...' : 'שמור'}</Button>
+                    <Button type="submit" variant="contained" disabled={isSubmitting}>{isSubmitting ? 'שומר...' : 'שמור'}</Button>
                 </DialogActions>
             </form>
         </Dialog>

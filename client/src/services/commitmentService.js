@@ -12,7 +12,9 @@ export const commitmentService = {
     },
 
     create: async (commitmentData) => {
+        console.log('commitmentService.create called with:', commitmentData);
         const response = await api.post('/commitments', commitmentData);
+        console.log('commitmentService.create response:', response);
         return response.data;
     },
 

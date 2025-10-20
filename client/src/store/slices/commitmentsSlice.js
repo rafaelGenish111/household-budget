@@ -28,9 +28,12 @@ export const createCommitment = createAsyncThunk(
     'commitments/create',
     async (commitmentData, { rejectWithValue }) => {
         try {
+            console.log('createCommitment thunk called with:', commitmentData);
             const response = await commitmentService.create(commitmentData);
+            console.log('createCommitment response:', response);
             return response.commitment;
         } catch (error) {
+            console.error('createCommitment error:', error);
             return rejectWithValue(error.response?.data?.message || 'שגיאה ביצירת התחייבות');
         }
     }
