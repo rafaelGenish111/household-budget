@@ -7,6 +7,11 @@ const commitmentSchema = new mongoose.Schema(
             ref: 'Household',
             required: true,
         },
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
         name: {
             type: String,
             required: [true, 'נא להזין שם ההתחייבות'],
@@ -57,6 +62,14 @@ const commitmentSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        isTimeLimited: {
+            type: Boolean,
+            default: false,
+        },
+        endDate: {
+            type: Date,
+            default: null,
+        },
         lastTransactionDate: {
             type: Date,
             default: null,
@@ -88,7 +101,10 @@ commitmentSchema.index({ household: 1, lastTransactionDate: 1 });
 // Method: should create monthly transaction today?
 commitmentSchema.methods.shouldCreateTransaction = function (today) {
     if (!this.autoCreateTransaction || !this.isActive) return false;
-    if (this.remaining <= 0) return false;
+    if (this.isTimeLimited && this.endDate && today > this.endDate) {
+        this.isActive = false;
+        return false;
+    }
 
     const currentDay = today.getDate();
     if (currentDay !== this.billingDay) return false;

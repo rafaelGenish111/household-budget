@@ -4,9 +4,9 @@ import { commitmentService } from '../../services/commitmentService';
 const initialState = {
     commitments: [],
     totals: {
-        totalDebt: 0,
         totalMonthlyPayment: 0,
         totalCommitments: 0,
+        activeCommitments: 0,
     },
     isLoading: false,
     error: null,
@@ -60,17 +60,7 @@ export const deleteCommitment = createAsyncThunk(
     }
 );
 
-export const recordPayment = createAsyncThunk(
-    'commitments/recordPayment',
-    async ({ id, amount }, { rejectWithValue }) => {
-        try {
-            const response = await commitmentService.recordPayment(id, amount);
-            return response.commitment;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'שגיאה בתשלום');
-        }
-    }
-);
+// removed recordPayment – model now handles auto-charges only
 
 const commitmentsSlice = createSlice({
     name: 'commitments',
@@ -97,6 +87,11 @@ const commitmentsSlice = createSlice({
             })
             .addCase(createCommitment.fulfilled, (state, action) => {
                 state.commitments.unshift(action.payload);
+                if (action.payload.isActive) {
+                    state.totals.totalMonthlyPayment += action.payload.monthlyPayment;
+                    state.totals.activeCommitments += 1;
+                }
+                state.totals.totalCommitments += 1;
             })
             .addCase(updateCommitment.fulfilled, (state, action) => {
                 const index = state.commitments.findIndex((c) => c._id === action.payload._id);
@@ -105,13 +100,15 @@ const commitmentsSlice = createSlice({
                 }
             })
             .addCase(deleteCommitment.fulfilled, (state, action) => {
-                state.commitments = state.commitments.filter((c) => c._id !== action.payload);
-            })
-            .addCase(recordPayment.fulfilled, (state, action) => {
-                const index = state.commitments.findIndex((c) => c._id === action.payload._id);
-                if (index !== -1) {
-                    state.commitments[index] = action.payload;
+                const deleted = state.commitments.find((c) => c._id === action.payload);
+                if (deleted) {
+                    if (deleted.isActive) {
+                        state.totals.totalMonthlyPayment -= deleted.monthlyPayment;
+                        state.totals.activeCommitments -= 1;
+                    }
+                    state.totals.totalCommitments -= 1;
                 }
+                state.commitments = state.commitments.filter((c) => c._id !== action.payload);
             });
     },
 });

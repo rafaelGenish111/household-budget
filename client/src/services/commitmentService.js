@@ -26,8 +26,8 @@ export const commitmentService = {
         return response.data;
     },
 
-    recordPayment: async (id, amount) => {
-        const response = await api.post(`/commitments/${id}/payment`, { amount });
+    getUpcomingCharges: async (days = 7) => {
+        const response = await api.get('/commitments/upcoming-charges', { params: { days } });
         return response.data;
     },
 };
