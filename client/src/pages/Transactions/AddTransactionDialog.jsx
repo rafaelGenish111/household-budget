@@ -176,7 +176,16 @@ const AddTransactionDialog = ({ open, onClose, transaction, defaultType }) => {
         }
     };
 
-    const filteredCategories = categories.filter((cat) => cat.type === watchType);
+    const filteredCategories = categories
+        .filter((cat) => cat.type === watchType)
+        .reduce((unique, cat) => {
+            // בדוק אם הקטגוריה כבר קיימת (לפי שם)
+            if (!unique.find(c => c.name === cat.name)) {
+                unique.push(cat);
+            }
+            return unique;
+        }, [])
+        .sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
     const selectedCategory = categories.find((cat) => cat.name === watchCategory);
     const subcategories = selectedCategory?.subcategories || [];

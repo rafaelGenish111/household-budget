@@ -93,7 +93,16 @@ const BudgetGoals = () => {
         return <LoadingSpinner />;
     }
 
-    const expenseCategories = categories.filter((cat) => cat.type === 'expense');
+    const expenseCategories = categories
+        .filter((cat) => cat.type === 'expense')
+        .reduce((unique, cat) => {
+            // בדוק אם הקטגוריה כבר קיימת (לפי שם)
+            if (!unique.find(c => c.name === cat.name)) {
+                unique.push(cat);
+            }
+            return unique;
+        }, [])
+        .sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
     const totalBudget = Object.values(categoryGoals).reduce((sum, val) => sum + val, 0);
     const totalSpent = summary?.expense || 0;
