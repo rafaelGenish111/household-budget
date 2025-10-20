@@ -5,12 +5,14 @@ import { Add, TrendingUp, TrendingDown } from '@mui/icons-material';
 import { fetchDebts, deleteDebt } from '../../store/slices/debtsSlice';
 import AddPaymentDialog from '../../components/debts/AddPaymentDialog';
 import PaymentHistory from '../../components/debts/PaymentHistory';
+import AddDebtDialog from '../../components/debts/AddDebtDialog';
 
 const DebtsTab = () => {
     const dispatch = useDispatch();
     const { debts, isLoading } = useSelector((state) => state.debts);
     const [debtType, setDebtType] = useState('all');
     const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedDebt, setSelectedDebt] = useState(null);
 
     useEffect(() => { dispatch(fetchDebts()); }, [dispatch]);
@@ -47,7 +49,16 @@ const DebtsTab = () => {
         <Box>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Typography variant="h6">חובות והלוואות</Typography>
-                <Button variant="contained" startIcon={<Add />} onClick={() => window.alert('Open AddDebtDialog (to be wired)')}>הוסף חוב</Button>
+                <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => {
+                        setSelectedDebt(null);
+                        setDialogOpen(true);
+                    }}
+                >
+                    הוסף חוב
+                </Button>
             </Box>
 
             <Grid container spacing={2} mb={3}>
@@ -122,6 +133,7 @@ const DebtsTab = () => {
             )}
 
             <AddPaymentDialog open={paymentDialogOpen} onClose={() => { setPaymentDialogOpen(false); setSelectedDebt(null); }} debt={selectedDebt} />
+            <AddDebtDialog open={dialogOpen} onClose={() => { setDialogOpen(false); setSelectedDebt(null); }} debt={selectedDebt} />
         </Box>
     );
 };
