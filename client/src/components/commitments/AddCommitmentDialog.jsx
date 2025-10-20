@@ -161,7 +161,7 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose} disabled={isSubmitting}>ביטול</Button>
-                    <Button type="submit" variant="contained" disabled={isSubmitting}>{isSubmitting ? 'שומר...' : 'שמור'}</Button>
+                    <Button type="submit" variant="contained" disabled={isSubmitting} onClick={handleSubmit(onSubmit)}>{isSubmitting ? 'שומר...' : 'שמור'}</Button>
                 </DialogActions>
             </form>
         </Dialog>
