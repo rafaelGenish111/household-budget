@@ -14,28 +14,13 @@ const commitmentSchema = new mongoose.Schema(
         },
         name: {
             type: String,
-            required: [true, 'נא להזין שם ההתחייבות'],
+            required: [true, 'נא להזין שם המנוי'],
             trim: true,
-        },
-        totalAmount: {
-            type: Number,
-            required: [true, 'נא להזין סכום כולל'],
-            min: [0, 'הסכום חייב להיות חיובי'],
-        },
-        remaining: {
-            type: Number,
-            required: [true, 'נא להזין סכום נותר'],
-            min: [0, 'הסכום חייב להיות חיובי'],
         },
         monthlyPayment: {
             type: Number,
             required: [true, 'נא להזין תשלום חודשי'],
             min: [0, 'התשלום חייב להיות חיובי'],
-        },
-        paymentsLeft: {
-            type: Number,
-            required: [true, 'נא להזין מספר תשלומים נותרים'],
-            min: [0, 'מספר התשלומים חייב להיות חיובי'],
         },
         startDate: {
             type: Date,
@@ -50,7 +35,7 @@ const commitmentSchema = new mongoose.Schema(
         },
         category: {
             type: String,
-            default: 'חשבונות',
+            required: [true, 'נא לבחור קטגוריה'],
             trim: true,
         },
         subcategory: {

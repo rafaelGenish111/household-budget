@@ -6,7 +6,7 @@ export const processRecurringTransactions = async (date = new Date()) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const commitments = await Commitment.find({ isActive: true, autoCreateTransaction: true, remaining: { $gt: 0 } }).session(session);
+        const commitments = await Commitment.find({ isActive: true, autoCreateTransaction: true }).session(session);
 
         const results = { checked: commitments.length, created: 0, skipped: 0, errors: 0, transactions: [] };
 
@@ -17,7 +17,7 @@ export const processRecurringTransactions = async (date = new Date()) => {
                     continue;
                 }
 
-                const amount = Math.min(commitment.monthlyPayment, commitment.remaining);
+                const amount = commitment.monthlyPayment;
 
                 const [tx] = await Transaction.create([
                     {
@@ -32,13 +32,7 @@ export const processRecurringTransactions = async (date = new Date()) => {
                     },
                 ], { session });
 
-                commitment.remaining -= amount;
-                commitment.paymentsLeft = Math.max(0, Math.ceil(commitment.remaining / (commitment.monthlyPayment || amount)));
                 commitment.lastTransactionDate = date;
-                if (commitment.remaining <= 0) {
-                    commitment.isActive = false;
-                    commitment.paymentsLeft = 0;
-                }
                 await commitment.save({ session });
 
                 results.created++;
