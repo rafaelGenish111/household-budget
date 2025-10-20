@@ -80,10 +80,10 @@ const CommitmentsList = () => {
             </Box>
 
             {/* Summary Cards */}
-            <Grid container spacing={3} mb={4}>
+            <Grid container spacing={2} mb={4}>
                 <Grid item xs={12} sm={4}>
-                    <Card>
-                        <CardContent>
+                    <Card elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
+                        <CardContent sx={{ p: 2 }}>
                             <Typography color="text.secondary" gutterBottom>
                                 סך חוב
                             </Typography>
@@ -94,8 +94,8 @@ const CommitmentsList = () => {
                     </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                    <Card>
-                        <CardContent>
+                    <Card elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
+                        <CardContent sx={{ p: 2 }}>
                             <Typography color="text.secondary" gutterBottom>
                                 תשלום חודשי
                             </Typography>
@@ -106,8 +106,8 @@ const CommitmentsList = () => {
                     </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                    <Card>
-                        <CardContent>
+                    <Card elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
+                        <CardContent sx={{ p: 2 }}>
                             <Typography color="text.secondary" gutterBottom>
                                 מספר הלוואות
                             </Typography>

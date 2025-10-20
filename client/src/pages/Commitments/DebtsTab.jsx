@@ -4,8 +4,9 @@ import { Box, Typography, Grid, Button, Tabs, Tab, Card, CardContent, Alert, Cir
 import { Add, TrendingUp, TrendingDown } from '@mui/icons-material';
 import { fetchDebts, deleteDebt } from '../../store/slices/debtsSlice';
 import AddPaymentDialog from '../../components/debts/AddPaymentDialog';
-import PaymentHistory from '../../components/debts/PaymentHistory';
 import AddDebtDialog from '../../components/debts/AddDebtDialog';
+import DebtCard from '../../components/debts/DebtCard';
+import DebtDetailsDialog from '../../components/debts/DebtDetailsDialog';
 
 const DebtsTab = () => {
     const dispatch = useDispatch();
@@ -14,6 +15,7 @@ const DebtsTab = () => {
     const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedDebt, setSelectedDebt] = useState(null);
+    const [detailsOpen, setDetailsOpen] = useState(false);
 
     useEffect(() => { dispatch(fetchDebts()); }, [dispatch]);
 
@@ -63,21 +65,21 @@ const DebtsTab = () => {
 
             <Grid container spacing={2} mb={3}>
                 <Grid item xs={12} md={4}>
-                    <Card><CardContent>
+                    <Card elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}><CardContent sx={{ p: 2 }}>
                         <Box display="flex" alignItems="center" gap={1} mb={1}><TrendingDown color="error" /><Typography variant="body2" color="text.secondary">אני חייב</Typography></Box>
                         <Typography variant="h5" color="error.main">₪{summary.totalOwe.toLocaleString()}</Typography>
                         <Typography variant="caption" color="text.secondary">{summary.countOwe} חובות</Typography>
                     </CardContent></Card>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                    <Card><CardContent>
+                    <Card elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}><CardContent sx={{ p: 2 }}>
                         <Box display="flex" alignItems="center" gap={1} mb={1}><TrendingUp color="success" /><Typography variant="body2" color="text.secondary">חייבים לי</Typography></Box>
                         <Typography variant="h5" color="success.main">₪{summary.totalOwed.toLocaleString()}</Typography>
                         <Typography variant="caption" color="text.secondary">{summary.countOwed} חובות</Typography>
                     </CardContent></Card>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                    <Card><CardContent>
+                    <Card elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}><CardContent sx={{ p: 2 }}>
                         <Typography variant="body2" color="text.secondary" mb={1}>נטו חובות</Typography>
                         <Typography variant="h5" color={netDebt > 0 ? 'error.main' : netDebt < 0 ? 'success.main' : 'text.primary'}>
                             {netDebt > 0 ? '-' : netDebt < 0 ? '+' : ''}₪{Math.abs(netDebt).toLocaleString()}
@@ -93,26 +95,20 @@ const DebtsTab = () => {
             </Tabs>
 
             {activeDebts.length === 0 ? (
-                <Alert severity="info">{debtType === 'all' ? 'אין חובות פעילים.' : 'אין חובות פעילים בקטגוריה זו.'}</Alert>
+                <Alert severity="info" sx={{ borderRadius: 2 }}>{debtType === 'all' ? 'אין חובות פעילים.' : 'אין חובות פעילים בקטגוריה זו.'}</Alert>
             ) : (
                 <>
-                    <Typography variant="subtitle1" fontWeight="bold" mb={2}>חובות פעילים ({activeDebts.length})</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold" mb={2} sx={{ px: 0.5 }}>חובות פעילים ({activeDebts.length})</Typography>
                     <Grid container spacing={2} mb={4}>
                         {activeDebts.map((debt) => (
                             <Grid item xs={12} md={6} lg={4} key={debt._id}>
-                                <Card>
-                                    <CardContent>
-                                        <Box display="flex" justifyContent="space-between" mb={1}>
-                                            <Typography variant="h6">{debt.creditorName}</Typography>
-                                            <Button size="small" onClick={() => handleAddPayment(debt)}>הוסף תשלום</Button>
-                                        </Box>
-                                        <Typography variant="body2" color="text.secondary">נותר: ₪{debt.remainingAmount.toLocaleString()} מתוך ₪{debt.originalAmount.toLocaleString()}</Typography>
-                                        <Box mt={2}><PaymentHistory payments={debt.payments} /></Box>
-                                        <Box display="flex" justifyContent="flex-end" gap={1} mt={1}>
-                                            <Button size="small" onClick={() => handleDelete(debt)} color="error">מחק</Button>
-                                        </Box>
-                                    </CardContent>
-                                </Card>
+                                <DebtCard
+                                    debt={debt}
+                                    onAddPayment={handleAddPayment}
+                                    onDelete={handleDelete}
+                                    onEdit={(d) => { setSelectedDebt(d); setDialogOpen(true); }}
+                                    onOpenDetails={(d) => { setSelectedDebt(d); setDetailsOpen(true); }}
+                                />
                             </Grid>
                         ))}
                     </Grid>
@@ -121,11 +117,16 @@ const DebtsTab = () => {
 
             {paidDebts.length > 0 && (
                 <>
-                    <Typography variant="subtitle1" fontWeight="bold" mb={2}>חובות ששולמו ({paidDebts.length})</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold" mb={2} sx={{ px: 0.5 }}>חובות ששולמו ({paidDebts.length})</Typography>
                     <Grid container spacing={2}>
                         {paidDebts.map((debt) => (
                             <Grid item xs={12} md={6} lg={4} key={debt._id}>
-                                <Card><CardContent><Typography variant="h6">{debt.creditorName}</Typography></CardContent></Card>
+                                <DebtCard
+                                    debt={debt}
+                                    onOpenDetails={(d) => { setSelectedDebt(d); setDetailsOpen(true); }}
+                                    onDelete={handleDelete}
+                                    onEdit={(d) => { setSelectedDebt(d); setDialogOpen(true); }}
+                                />
                             </Grid>
                         ))}
                     </Grid>
@@ -134,6 +135,7 @@ const DebtsTab = () => {
 
             <AddPaymentDialog open={paymentDialogOpen} onClose={() => { setPaymentDialogOpen(false); setSelectedDebt(null); }} debt={selectedDebt} />
             <AddDebtDialog open={dialogOpen} onClose={() => { setDialogOpen(false); setSelectedDebt(null); }} debt={selectedDebt} />
+            <DebtDetailsDialog open={detailsOpen} onClose={() => { setDetailsOpen(false); setSelectedDebt(null); }} debt={selectedDebt} />
         </Box>
     );
 };
