@@ -11,11 +11,21 @@ const schema = yup.object({
     name: yup.string().required('נא להזין שם המנוי'),
     category: yup.string().required('נא לבחור קטגוריה'),
     subcategory: yup.string(),
-    monthlyPayment: yup.number().required('נא להזין סכום').positive('הסכום חייב להיות חיובי'),
-    billingDay: yup.number().required('נא להזין יום חיוב').min(1).max(31),
-    startDate: yup.date().required('נא לבחור תאריך התחלה'),
+    monthlyPayment: yup
+        .number()
+        .typeError('נא להזין סכום מספרי')
+        .required('נא להזין סכום')
+        .positive('הסכום חייב להיות חיובי'),
+    billingDay: yup
+        .number()
+        .typeError('נא להזין יום חיוב כמספר')
+        .required('נא להזין יום חיוב')
+        .min(1, 'יום חיוב חייב להיות בין 1-31')
+        .max(31, 'יום חיוב חייב להיות בין 1-31'),
+    // נקבל כתו"ר וננרמל ב-onSubmit כדי לתמוך גם ב-dd/MM/yyyy
+    startDate: yup.string().required('נא לבחור תאריך התחלה'),
     isTimeLimited: yup.boolean(),
-    endDate: yup.date().nullable(),
+    endDate: yup.string().nullable(),
     autoCreateTransaction: yup.boolean(),
     paymentMethod: yup.string(),
     description: yup.string(),
