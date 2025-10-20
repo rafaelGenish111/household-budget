@@ -36,33 +36,71 @@ const commitmentSchema = new mongoose.Schema(
             type: Date,
             required: [true, 'נא לבחור תאריך התחלה'],
         },
-        isRecurring: {
+        // 🆕 שדות לתזמון אוטומטי
+        billingDay: {
+            type: Number,
+            min: [1, 'יום החיוב חייב להיות בין 1-31'],
+            max: [31, 'יום החיוב חייב להיות בין 1-31'],
+            default: 1,
+        },
+        category: {
+            type: String,
+            default: 'חשבונות',
+            trim: true,
+        },
+        subcategory: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        autoCreateTransaction: {
             type: Boolean,
             default: true,
-            description: 'האם זה תשלום חודשי אוטומטי'
         },
-        recurringDay: {
-            type: Number,
-            min: 1,
-            max: 31,
-            default: 1,
-            description: 'יום בחודש לביצוע התשלום (1-31)'
-        },
-        recurringCategory: {
-            type: String,
-            default: 'החזרי הלוואות',
-            description: 'שם הקטגוריה שתיווצר בהוצאה'
-        },
-        lastProcessedDate: {
+        lastTransactionDate: {
             type: Date,
             default: null,
-            description: 'תאריך אחרון שבו עובד התשלום החודשי'
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        paymentMethod: {
+            type: String,
+            enum: ['מזומן', 'אשראי', 'העברה בנקאית', "צ'ק", 'אחר'],
+            default: 'אשראי',
+        },
+        description: {
+            type: String,
+            trim: true,
+            maxlength: [500, 'התיאור ארוך מדי'],
         },
     },
     {
         timestamps: true,
     }
 );
+
+// Indexes
+commitmentSchema.index({ household: 1, isActive: 1, billingDay: 1 });
+commitmentSchema.index({ household: 1, lastTransactionDate: 1 });
+
+// Method: should create monthly transaction today?
+commitmentSchema.methods.shouldCreateTransaction = function (today) {
+    if (!this.autoCreateTransaction || !this.isActive) return false;
+    if (this.remaining <= 0) return false;
+
+    const currentDay = today.getDate();
+    if (currentDay !== this.billingDay) return false;
+
+    if (this.lastTransactionDate) {
+        const last = this.lastTransactionDate;
+        if (last.getFullYear() === today.getFullYear() && last.getMonth() === today.getMonth()) {
+            return false; // already created this month
+        }
+    }
+    return true;
+};
 
 const Commitment = mongoose.model('Commitment', commitmentSchema);
 

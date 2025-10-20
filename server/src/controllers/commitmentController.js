@@ -1,4 +1,5 @@
 import Commitment from '../models/Commitment.js';
+import { getUpcomingRecurring } from '../services/recurringTransactionsService.js';
 
 // @desc    Get all commitments
 // @route   GET /api/commitments
@@ -219,6 +220,22 @@ export const recordPayment = async (req, res) => {
             success: false,
             message: error.message,
         });
+    }
+};
+
+// @desc    Get upcoming recurring transactions
+// @route   GET /api/commitments/upcoming-charges
+// @access  Private
+export const getUpcomingCharges = async (req, res) => {
+    try {
+        const { days = 7 } = req.query;
+        const upcoming = await getUpcomingRecurring(parseInt(days));
+        const filtered = upcoming.filter(
+            (c) => c.household.toString() === req.user.household.toString()
+        );
+        res.json({ success: true, count: filtered.length, upcoming: filtered });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

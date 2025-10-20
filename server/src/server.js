@@ -58,37 +58,34 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// CORS middleware - פשוט וחזק
-app.use(
-    cors({
-        origin: [
-            'http://localhost:5173',
-            'http://localhost:3000',
-            'https://household-budget-client.vercel.app',
-            'https://household-budget-client-git-main-rafaelgenish111s-projects.vercel.app',
-            /^https:\/\/household-budget-client.*\.vercel\.app$/ // כל ה-subdomains של Vercel
-        ],
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-        allowedHeaders: [
-            'Content-Type',
-            'Authorization',
-            'x-auth-token',
-            'Accept',
-            'Origin',
-            'X-Requested-With'
-        ],
-        optionsSuccessStatus: 200 // תמיכה ב-Internet Explorer
-    })
-);
+// CORS middleware - נפתח לכל המקורות (נשתמש ב-Authorization header, לא בעוגיות)
+const corsOptions = {
+    origin: (origin, callback) => {
+        // מאפשר כל מקור; אם תרצה להגביל, החלף ל-allowlist ובדיקה
+        callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'x-auth-token',
+        'Accept',
+        'Origin',
+        'X-Requested-With'
+    ],
+    optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 
 // טיפול נוסף ב-preflight requests
 app.options('*', (req, res) => {
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Vary', 'Origin');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, Accept, Origin, X-Requested-With');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.status(200).end();
+    res.status(204).end();
 });
 
 // Middleware נוסף לוודא שכל התגובות כוללות כותרות CORS
@@ -101,8 +98,9 @@ app.use((req, res, next) => {
     ];
 
     const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin) || (origin && origin.match(/^https:\/\/household-budget-client.*\.vercel\.app$/))) {
+    if (origin) {
         res.header('Access-Control-Allow-Origin', origin);
+        res.header('Vary', 'Origin');
     }
 
     res.header('Access-Control-Allow-Credentials', 'true');
