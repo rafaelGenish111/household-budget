@@ -33,6 +33,7 @@ import TimeRangeSelector from '../../components/dashboard/TimeRangeSelector';
 import TrendChart from '../../components/charts/TrendChart';
 import ComparisonCard from '../../components/dashboard/ComparisonCard';
 import DebtsSummaryCard from '../../components/dashboard/DebtsSummaryCard';
+import CommitmentsWidget from '../../components/dashboard/CommitmentsWidget';
 import { useTimeRange } from '../../hooks/useTimeRange';
 import {
     getTimeRangeStats,
@@ -256,6 +257,11 @@ const Dashboard = () => {
                         error={error}
                         title="השוואה לתקופה קודמת"
                     />
+                </Grid>
+
+                {/* Commitments summary */}
+                <Grid item xs={12} md={6} lg={4}>
+                    <CommitmentsWidget />
                 </Grid>
             </Grid>
 
