@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { format } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 import { createCommitment, updateCommitment } from '../../store/slices/commitmentsSlice';
 
 const schema = yup.object({
@@ -70,7 +70,24 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
         console.log('onSubmit called with data:', data);
         setIsSubmitting(true);
         try {
-            const submitData = { ...data, endDate: data.isTimeLimited && data.endDate ? data.endDate : null };
+            // Normalize and validate values
+            // startDate may arrive as 'yyyy-MM-dd' or 'dd/MM/yyyy' – normalize to 'yyyy-MM-dd'
+            let normalizedStartDate = data.startDate;
+            if (typeof normalizedStartDate === 'string') {
+                let parsed = normalizedStartDate.includes('/')
+                    ? parse(normalizedStartDate, 'dd/MM/yyyy', new Date())
+                    : parse(normalizedStartDate, 'yyyy-MM-dd', new Date());
+                if (!isValid(parsed)) parsed = new Date(normalizedStartDate);
+                if (isValid(parsed)) normalizedStartDate = format(parsed, 'yyyy-MM-dd');
+            }
+
+            const submitData = {
+                ...data,
+                monthlyPayment: Number(data.monthlyPayment) || 0,
+                billingDay: Number(data.billingDay) || 1,
+                startDate: normalizedStartDate,
+                endDate: data.isTimeLimited && data.endDate ? data.endDate : null,
+            };
             console.log('Submitting data:', submitData);
             if (commitment?._id) {
                 console.log('Updating commitment:', commitment._id);
@@ -89,6 +106,10 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
         }
     };
 
+    const onError = (formErrors) => {
+        console.error('validation errors:', formErrors);
+    };
+
     const expenseCategories = categories.filter((cat) => cat.type === 'expense');
     const selectedCategory = expenseCategories.find((cat) => cat.name === watchCategory);
     const subcategories = selectedCategory?.subcategories || [];
@@ -96,7 +117,7 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>{commitment?._id ? 'עריכת מנוי' : 'הוספת מנוי חדש'}</DialogTitle>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit, onError)}>
                 <DialogContent>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
@@ -173,17 +194,7 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose} disabled={isSubmitting}>ביטול</Button>
-                    <Button 
-                        type="submit" 
-                        variant="contained" 
-                        disabled={isSubmitting}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleSubmit(onSubmit)();
-                        }}
-                    >
-                        {isSubmitting ? 'שומר...' : 'שמור'}
-                    </Button>
+                    <Button type="submit" variant="contained" disabled={isSubmitting}>{isSubmitting ? 'שומר...' : 'שמור'}</Button>
                 </DialogActions>
             </form>
         </Dialog>
