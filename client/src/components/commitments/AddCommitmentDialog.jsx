@@ -120,7 +120,13 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
         console.error('validation errors:', formErrors);
     };
 
-    const expenseCategories = categories.filter((cat) => cat.type === 'expense');
+    const expenseCategories = categories
+        .filter((cat) => cat.type === 'expense')
+        .reduce((unique, cat) => {
+            if (!unique.find((c) => c.name === cat.name)) unique.push(cat);
+            return unique;
+        }, [])
+        .sort((a, b) => a.name.localeCompare(b.name, 'he'));
     const selectedCategory = expenseCategories.find((cat) => cat.name === watchCategory);
     const subcategories = selectedCategory?.subcategories || [];
 

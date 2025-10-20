@@ -8,10 +8,10 @@ export const defaultCategories = [
         isDefault: true,
     },
     {
-        name: 'תחבורה ציבורית',
+        name: 'תחבורה',
         type: 'expense',
-        subcategories: ['אוטובוס', 'רכבת', 'מונית', 'שארמון', 'אחר'],
-        icon: '🚌',
+        subcategories: ['דלק', 'תחבורה ציבורית', 'חניה', 'תחזוקת רכב', 'אחר'],
+        icon: '🚗',
         color: '#4ecdc4',
         isDefault: true,
     },
@@ -34,9 +34,9 @@ export const defaultCategories = [
     {
         name: 'שירותים דיגיטליים',
         type: 'expense',
-        subcategories: ['נטפליקס', 'ספוטיפיי', 'אפל מיוזיק', 'יוטיוב פרמיום', 'אמזון פריים', 'דיסני+', 'הולו', 'אחר'],
+        subcategories: ['אינטרנט וטלפון', 'שירותי סטרימינג', 'אפליקציות ומנויים', 'אחסון בענן', 'תוכנות ורישיונות', 'אחר'],
         icon: '📱',
-        color: '#6c5ce7',
+        color: '#667eea',
         isDefault: true,
     },
     {
@@ -56,9 +56,9 @@ export const defaultCategories = [
         isDefault: true,
     },
     {
-        name: 'חינוך ופיתוח',
+        name: 'חינוך',
         type: 'expense',
-        subcategories: ['שכר לימוד', 'ספרים', 'קורסים אונליין', 'השתלמויות', 'שפה', 'אחר'],
+        subcategories: ['שכר לימוד', 'ספרים', 'קורסים', 'אחר'],
         icon: '📚',
         color: '#fcbad3',
         isDefault: true,

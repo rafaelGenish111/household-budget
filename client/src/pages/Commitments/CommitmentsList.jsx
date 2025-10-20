@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Typography, Grid, Card, CardContent, Button } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Button, Container, Paper } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { fetchCommitments, deleteCommitment } from '../../store/slices/commitmentsSlice';
 import { fetchCategories } from '../../store/slices/categoriesSlice';
@@ -43,12 +43,11 @@ const CommitmentsList = () => {
     }
 
     return (
-        <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Paper elevation={0} sx={{ p: 3, backgroundColor: 'background.default' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
                 <Box>
-                    <Typography variant="h4" fontWeight="bold">
-                        מנויים קבועים
-                    </Typography>
+                    <Typography variant="h5" fontWeight="bold">מנויים קבועים</Typography>
                     <Typography variant="body2" color="text.secondary">
                         עקוב אחר המנויים והחיובים הקבועים שלך
                     </Typography>
@@ -86,23 +85,11 @@ const CommitmentsList = () => {
 
             {/* Commitments List */}
             {commitments.length === 0 ? (
-                <Card>
-                    <CardContent sx={{ textAlign: 'center', py: 8 }}>
-                        <Typography variant="h6" color="text.secondary" gutterBottom>
-                            אין מנויים
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" mb={3}>
-                            צור מנוי חדש כדי להתחיל לעקוב אחר החיובים הקבועים שלך
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<Add />}
-                            onClick={() => setDialogOpen(true)}
-                        >
-                            צור מנוי ראשון
-                        </Button>
-                    </CardContent>
-                </Card>
+                <Box textAlign="center" py={8} sx={{ backgroundColor: 'grey.50', borderRadius: 2, border: '2px dashed', borderColor: 'grey.300' }}>
+                    <Typography variant="h6" color="text.secondary" gutterBottom>אין מנויים</Typography>
+                    <Typography variant="body2" color="text.secondary" mb={3}>צור מנוי חדש כדי להתחיל לעקוב אחר החיובים הקבועים שלך</Typography>
+                    <Button variant="contained" startIcon={<Add />} onClick={() => setDialogOpen(true)}>צור מנוי ראשון</Button>
+                </Box>
             ) : (
                 <Grid container spacing={2}>
                     {commitments.map((commitment) => (
@@ -124,7 +111,8 @@ const CommitmentsList = () => {
             />
 
             {/* הוסר דיאלוג תשלום – מודל חדש של מנויים */}
-        </Box>
+            </Paper>
+        </Container>
     );
 };
 

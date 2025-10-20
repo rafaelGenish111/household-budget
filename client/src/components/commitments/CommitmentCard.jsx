@@ -1,5 +1,5 @@
-import { Card, CardContent, Typography, Box, Chip, IconButton, Menu, MenuItem } from '@mui/material';
-import { MoreVert, CalendarToday, Edit, Delete, AutoMode, Schedule } from '@mui/icons-material';
+import { Card, CardContent, Typography, Box, Chip, IconButton, Menu, MenuItem, Divider } from '@mui/material';
+import { MoreVert, CalendarToday, Edit, Delete, AutoMode, Schedule, Warning } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { useState } from 'react';
@@ -19,8 +19,8 @@ const CommitmentCard = ({ commitment, onEdit, onDelete }) => {
     const daysUntilBilling = Math.ceil((nextBilling.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
     return (
-        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2 }}>
-            <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
+        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 } }}>
+            <CardContent sx={{ flexGrow: 1, p: 3 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="start">
                     <Box>
                         <Typography variant="h6" gutterBottom>{commitment.name}</Typography>
@@ -33,21 +33,26 @@ const CommitmentCard = ({ commitment, onEdit, onDelete }) => {
                     <IconButton size="small" onClick={handleMenuOpen}><MoreVert /></IconButton>
                 </Box>
 
-                <Box>
-                    <Typography variant="body2" color="text.secondary">תשלום חודשי</Typography>
-                    <Typography variant="h5" color="primary">₪{commitment.monthlyPayment.toLocaleString()}</Typography>
+                <Divider sx={{ my: 2 }} />
+                <Box mb={2}>
+                    <Typography variant="caption" color="text.secondary" display="block">תשלום חודשי</Typography>
+                    <Typography variant="h4" fontWeight="bold" color="primary.main">₪{commitment.monthlyPayment.toLocaleString()}</Typography>
                 </Box>
 
-                <Box display="flex" alignItems="center" gap={1} p={1.5} sx={{ backgroundColor: daysUntilBilling <= 3 ? 'error.light' : 'grey.100', borderRadius: 1, mt: 'auto' }}>
-                    <CalendarToday fontSize="small" />
-                    <Box>
-                        <Typography variant="caption" display="block">חיוב הבא</Typography>
-                        <Typography variant="body2" fontWeight="bold">{format(nextBilling, 'dd/MM/yyyy', { locale: he })} ({daysUntilBilling} ימים)</Typography>
+                <Box display="flex" alignItems="center" gap={1.5} p={1.5} sx={{ backgroundColor: daysUntilBilling <= 3 ? 'error.light' : 'primary.light', borderRadius: 1.5, border: 1, borderColor: daysUntilBilling <= 3 ? 'error.main' : 'primary.main' }} mb={2}>
+                    {daysUntilBilling <= 3 ? <Warning color="error" /> : <CalendarToday color="primary" />}
+                    <Box flexGrow={1}>
+                        <Typography variant="caption" display="block" fontWeight="medium">חיוב הבא</Typography>
+                        <Typography variant="body2" fontWeight="bold">{format(nextBilling, 'dd/MM/yyyy', { locale: he })}</Typography>
                     </Box>
+                    <Chip label={`עוד ${daysUntilBilling} ימים`} size="small" color={daysUntilBilling <= 3 ? 'error' : 'default'} />
                 </Box>
-                <Box display="flex" alignItems="center" gap={1}><Schedule fontSize="small" color="action" /><Typography variant="caption">חיוב ב-{commitment.billingDay} לכל חודש</Typography></Box>
-                {commitment.isTimeLimited && commitment.endDate && (<Typography variant="caption" color="text.secondary">מסתיים ב-{format(new Date(commitment.endDate), 'dd/MM/yyyy', { locale: he })}</Typography>)}
-                {commitment.description && (<Typography variant="body2" color="text.secondary" mt={1}>{commitment.description}</Typography>)}
+                <Box display="flex" flexDirection="column" gap={1}>
+                    <Box display="flex" alignItems="center" gap={1}><Schedule fontSize="small" color="action" /><Typography variant="caption" color="text.secondary">חיוב ב-{commitment.billingDay} לכל חודש</Typography></Box>
+                    {commitment.autoCreateTransaction && (<Box display="flex" alignItems="center" gap={1}><AutoMode fontSize="small" color="success" /><Typography variant="caption" color="success.main">יצירה אוטומטית פעילה</Typography></Box>)}
+                    {commitment.isTimeLimited && commitment.endDate && (<Typography variant="caption" color="warning.main">⏰ מסתיים ב-{format(new Date(commitment.endDate), 'dd/MM/yyyy', { locale: he })}</Typography>)}
+                </Box>
+                {commitment.description && (<><Divider sx={{ my: 2 }} /><Typography variant="body2" color="text.secondary">{commitment.description}</Typography></>)}
             </CardContent>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
                 <MenuItem onClick={() => { handleMenuClose(); onEdit(commitment); }}><Edit fontSize="small" sx={{ mr: 1 }} />ערוך</MenuItem>
