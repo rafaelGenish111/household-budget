@@ -32,6 +32,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import TimeRangeSelector from '../../components/dashboard/TimeRangeSelector';
 import TrendChart from '../../components/charts/TrendChart';
 import ComparisonCard from '../../components/dashboard/ComparisonCard';
+import DebtsSummaryCard from '../../components/dashboard/DebtsSummaryCard';
 import { useTimeRange } from '../../hooks/useTimeRange';
 import {
     getTimeRangeStats,
@@ -230,8 +231,11 @@ const Dashboard = () => {
 
             {/* Enhanced Charts and Analysis */}
             <Grid container spacing={3} mb={4}>
+                <Grid item xs={12} md={6} lg={4}>
+                    <DebtsSummaryCard />
+                </Grid>
                 {/* Trend Chart */}
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={6} lg={8}>
                     <Card sx={{ height: '100%' }}>
                         <CardContent>
                             <TrendChart
