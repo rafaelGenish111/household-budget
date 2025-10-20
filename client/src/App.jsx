@@ -24,7 +24,7 @@ import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard/Dashboard';
 import TransactionsList from './pages/Transactions/TransactionsList';
 import SavingsList from './pages/Savings/SavingsList';
-import CommitmentsList from './pages/Commitments/CommitmentsList';
+import Commitments from './pages/Commitments/Commitments';
 import BudgetGoals from './pages/Goals/BudgetGoals';
 import Settings from './pages/Settings/Settings';
 
@@ -72,7 +72,7 @@ const AppContent = () => {
                                 <Route path="dashboard" element={<Dashboard />} />
                                 <Route path="transactions" element={<TransactionsList />} />
                                 <Route path="savings" element={<SavingsList />} />
-                                <Route path="commitments" element={<CommitmentsList />} />
+                                <Route path="commitments" element={<Commitments />} />
                                 <Route path="goals" element={<BudgetGoals />} />
                                 <Route path="settings" element={<Settings />} />
                             </Route>
