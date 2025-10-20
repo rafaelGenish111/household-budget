@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Box, Typography, Grid, Card, CardContent, Button } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { fetchCommitments, deleteCommitment } from '../../store/slices/commitmentsSlice';
+import { fetchCategories } from '../../store/slices/categoriesSlice';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import AddCommitmentDialog from '../../components/commitments/AddCommitmentDialog';
 import CommitmentCard from '../../components/commitments/CommitmentCard';
@@ -16,6 +17,7 @@ const CommitmentsList = () => {
 
     useEffect(() => {
         dispatch(fetchCommitments());
+        dispatch(fetchCategories());
     }, [dispatch]);
 
     const handleDelete = async (id) => {
