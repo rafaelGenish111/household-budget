@@ -84,8 +84,8 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
             reset();
         } catch (error) {
             console.error('Error in onSubmit:', error);
-        } finally { 
-            setIsSubmitting(false); 
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -173,7 +173,17 @@ const AddCommitmentDialog = ({ open, onClose, commitment }) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose} disabled={isSubmitting}>ביטול</Button>
-                    <Button type="submit" variant="contained" disabled={isSubmitting}>{isSubmitting ? 'שומר...' : 'שמור'}</Button>
+                    <Button 
+                        type="submit" 
+                        variant="contained" 
+                        disabled={isSubmitting}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleSubmit(onSubmit)();
+                        }}
+                    >
+                        {isSubmitting ? 'שומר...' : 'שמור'}
+                    </Button>
                 </DialogActions>
             </form>
         </Dialog>
