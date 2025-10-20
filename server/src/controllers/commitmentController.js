@@ -12,14 +12,16 @@ export const getCommitments = async (req, res) => {
 
         // Calculate totals
         const totals = {
-            totalDebt: 0,
             totalMonthlyPayment: 0,
             totalCommitments: commitments.length,
+            activeCommitments: 0,
         };
 
         commitments.forEach((commitment) => {
-            totals.totalDebt += commitment.remaining;
-            totals.totalMonthlyPayment += commitment.monthlyPayment;
+            if (commitment.isActive) {
+                totals.totalMonthlyPayment += commitment.monthlyPayment;
+                totals.activeCommitments += 1;
+            }
         });
 
         res.json({
@@ -78,6 +80,7 @@ export const createCommitment = async (req, res) => {
         const commitmentData = {
             ...req.body,
             household: req.user.household,
+            user: req.user._id,
         };
 
         const commitment = await Commitment.create(commitmentData);
