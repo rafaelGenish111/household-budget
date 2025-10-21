@@ -62,6 +62,18 @@ const categoriesSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
+        clearCategories: (state) => {
+            state.categories = [];
+        },
+        removeDuplicates: (state) => {
+            const uniqueCategories = state.categories.reduce((acc, category) => {
+                if (!acc.find(cat => cat.name === category.name)) {
+                    acc.push(category);
+                }
+                return acc;
+            }, []);
+            state.categories = uniqueCategories;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -71,27 +83,53 @@ const categoriesSlice = createSlice({
             })
             .addCase(fetchCategories.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.categories = action.payload;
+                // Remove duplicates by name (keep the first occurrence)
+                const uniqueCategories = action.payload.reduce((acc, category) => {
+                    if (!acc.find(cat => cat.name === category.name)) {
+                        acc.push(category);
+                    }
+                    return acc;
+                }, []);
+                state.categories = uniqueCategories;
             })
             .addCase(fetchCategories.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload;
             })
             .addCase(createCategory.fulfilled, (state, action) => {
-                state.categories.push(action.payload);
+                // Check if category already exists (by name)
+                if (!state.categories.find(cat => cat.name === action.payload.name)) {
+                    state.categories.push(action.payload);
+                }
             })
             .addCase(updateCategory.fulfilled, (state, action) => {
                 const index = state.categories.findIndex((c) => c._id === action.payload._id);
                 if (index !== -1) {
                     state.categories[index] = action.payload;
                 }
+                // Also check for duplicates after update
+                const uniqueCategories = state.categories.reduce((acc, category) => {
+                    if (!acc.find(cat => cat.name === category.name)) {
+                        acc.push(category);
+                    }
+                    return acc;
+                }, []);
+                state.categories = uniqueCategories;
             })
             .addCase(deleteCategory.fulfilled, (state, action) => {
                 state.categories = state.categories.filter((c) => c._id !== action.payload);
+                // Also check for duplicates after delete
+                const uniqueCategories = state.categories.reduce((acc, category) => {
+                    if (!acc.find(cat => cat.name === category.name)) {
+                        acc.push(category);
+                    }
+                    return acc;
+                }, []);
+                state.categories = uniqueCategories;
             });
     },
 });
 
-export const { clearError } = categoriesSlice.actions;
+export const { clearError, clearCategories, removeDuplicates } = categoriesSlice.actions;
 export default categoriesSlice.reducer;
 

@@ -19,10 +19,18 @@ export const getCategories = async (req, res) => {
 
         const categories = await Category.find(query).sort({ name: 1 });
 
+        // Remove duplicates by name (keep the first occurrence)
+        const uniqueCategories = categories.reduce((acc, category) => {
+            if (!acc.find(cat => cat.name === category.name)) {
+                acc.push(category);
+            }
+            return acc;
+        }, []);
+
         res.json({
             success: true,
-            count: categories.length,
-            categories,
+            count: uniqueCategories.length,
+            categories: uniqueCategories,
         });
     } catch (error) {
         res.status(500).json({
