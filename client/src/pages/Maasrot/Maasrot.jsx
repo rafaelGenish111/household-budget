@@ -76,12 +76,12 @@ const Maasrot = () => {
 
     const getProgressColor = (remaining) => {
         if (remaining <= 0) return 'success.main';
-        if (remaining <= maasrot.maasrotTarget * 0.3) return 'warning.main';
+        if (remaining <= (maasrot?.maasrotTarget || 0) * 0.3) return 'warning.main';
         return 'error.main';
     };
 
     const getProgressPercentage = () => {
-        if (maasrot.maasrotTarget === 0) return 0;
+        if (!maasrot?.maasrotTarget || maasrot.maasrotTarget === 0) return 0;
         return Math.round((maasrot.totalDonated / maasrot.maasrotTarget) * 100);
     };
 
@@ -137,7 +137,7 @@ const Maasrot = () => {
                                     </Typography>
                                 </Box>
                                 <Typography variant="h4" fontWeight="bold" color="primary.main">
-                                    ₪{maasrot.monthlyIncome.toLocaleString()}
+                                    ₪{(maasrot?.monthlyIncome || 0).toLocaleString()}
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -154,7 +154,7 @@ const Maasrot = () => {
                                     </Typography>
                                 </Box>
                                 <Typography variant="h4" fontWeight="bold" color="success.main">
-                                    ₪{maasrot.maasrotTarget.toLocaleString()}
+                                    ₪{(maasrot?.maasrotTarget || 0).toLocaleString()}
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -171,7 +171,7 @@ const Maasrot = () => {
                                     </Typography>
                                 </Box>
                                 <Typography variant="h4" fontWeight="bold" color="info.main">
-                                    ₪{maasrot.totalDonated.toLocaleString()}
+                                    ₪{(maasrot?.totalDonated || 0).toLocaleString()}
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -182,17 +182,17 @@ const Maasrot = () => {
                         <Card elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
                             <CardContent sx={{ p: 2 }}>
                                 <Box display="flex" alignItems="center" gap={1} mb={1}>
-                                    <CalendarToday color={maasrot.remaining <= 0 ? 'success' : 'warning'} />
+                                    <CalendarToday color={(maasrot?.remaining || 0) <= 0 ? 'success' : 'warning'} />
                                     <Typography variant="body2" color="text.secondary">
                                         יתרה נותרת
                                     </Typography>
                                 </Box>
-                                <Typography
-                                    variant="h4"
-                                    fontWeight="bold"
-                                    color={getProgressColor(maasrot.remaining)}
+                                <Typography 
+                                    variant="h4" 
+                                    fontWeight="bold" 
+                                    color={getProgressColor(maasrot?.remaining || 0)}
                                 >
-                                    ₪{maasrot.remaining.toLocaleString()}
+                                    ₪{(maasrot?.remaining || 0).toLocaleString()}
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -225,13 +225,13 @@ const Maasrot = () => {
                                 sx={{
                                     width: `${Math.min(getProgressPercentage(), 100)}%`,
                                     height: '100%',
-                                    backgroundColor: getProgressColor(maasrot.remaining),
+                                    backgroundColor: getProgressColor(maasrot?.remaining || 0),
                                     transition: 'width 0.3s ease',
                                 }}
                             />
                         </Box>
                         <Typography variant="caption" color="text.secondary" mt={1} display="block">
-                            {maasrot.totalDonated.toLocaleString()} מתוך {maasrot.maasrotTarget.toLocaleString()}
+                            {(maasrot?.totalDonated || 0).toLocaleString()} מתוך {(maasrot?.maasrotTarget || 0).toLocaleString()}
                         </Typography>
                     </CardContent>
                 </Card>
@@ -245,7 +245,7 @@ const Maasrot = () => {
                             </Typography>
                         </Box>
 
-                        {maasrot.donations.length === 0 ? (
+                        {maasrot?.donations?.length === 0 ? (
                             <Box textAlign="center" py={8} sx={{ px: 3 }}>
                                 <Typography variant="h6" color="text.secondary" gutterBottom>
                                     אין תרומות
@@ -263,7 +263,7 @@ const Maasrot = () => {
                             </Box>
                         ) : (
                             <List>
-                                {maasrot.donations.map((donation, index) => (
+                                {(maasrot?.donations || []).map((donation, index) => (
                                     <div key={donation._id || index}>
                                         <ListItem sx={{ py: 2 }}>
                                             <ListItemText
@@ -296,7 +296,7 @@ const Maasrot = () => {
                                                 </IconButton>
                                             </ListItemSecondaryAction>
                                         </ListItem>
-                                        {index < maasrot.donations.length - 1 && <Divider />}
+                                        {index < (maasrot?.donations?.length || 0) - 1 && <Divider />}
                                     </div>
                                 ))}
                             </List>
@@ -314,7 +314,7 @@ const Maasrot = () => {
                 >
                     <MenuItem
                         onClick={() => {
-                            const donation = maasrot.donations.find(d => d._id === selectedDonationId);
+                            const donation = (maasrot?.donations || []).find(d => d._id === selectedDonationId);
                             if (donation) {
                                 handleEditDonation(donation);
                             }
