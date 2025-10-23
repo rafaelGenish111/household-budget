@@ -13,7 +13,7 @@ export const getMaasrot = async (req, res) => {
         const currentMonth = new Date();
         currentMonth.setDate(1);
         currentMonth.setHours(0, 0, 0, 0);
-        
+
         const nextMonth = new Date(currentMonth);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
 

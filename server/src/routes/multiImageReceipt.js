@@ -12,7 +12,7 @@ import {
     getActiveSessions,
     getCompletedSession
 } from '../controllers/multiImageReceiptController.js';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -33,7 +33,7 @@ const upload = multer({
 });
 
 // כל ה-routes דורשים אימות
-router.use(auth);
+router.use(protect);
 
 /**
  * POST /api/multi-receipt/sessions

@@ -7,11 +7,11 @@ import {
     deleteSaving,
     addContribution,
 } from '../controllers/savingController.js';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(auth);
+router.use(protect);
 
 router.route('/').get(getSavings).post(createSaving);
 router.route('/:id').get(getSaving).put(updateSaving).delete(deleteSaving);

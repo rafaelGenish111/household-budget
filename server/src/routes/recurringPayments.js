@@ -1,5 +1,5 @@
 import express from 'express';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 import { processAllRecurringPayments } from '../jobs/recurringPayments.js';
 
 const router = express.Router();

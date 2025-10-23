@@ -7,11 +7,11 @@ import {
     getInvitations,
     cancelInvitation,
 } from '../controllers/householdController.js';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(auth);
+router.use(protect);
 
 router.route('/').get(getHousehold).put(updateHousehold);
 router.post('/invite', inviteUser);

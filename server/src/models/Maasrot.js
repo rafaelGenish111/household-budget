@@ -60,12 +60,12 @@ const maasrotSchema = new mongoose.Schema({
 });
 
 // Virtual for calculating remaining amount
-maasrotSchema.virtual('calculatedRemaining').get(function() {
+maasrotSchema.virtual('calculatedRemaining').get(function () {
     return this.maasrotTarget - this.totalDonated;
 });
 
 // Method to add donation
-maasrotSchema.methods.addDonation = function(donationData) {
+maasrotSchema.methods.addDonation = function (donationData) {
     this.donations.push(donationData);
     this.totalDonated = this.donations.reduce((sum, donation) => sum + donation.amount, 0);
     this.remaining = this.maasrotTarget - this.totalDonated;
@@ -74,7 +74,7 @@ maasrotSchema.methods.addDonation = function(donationData) {
 };
 
 // Method to update monthly income and recalculate target
-maasrotSchema.methods.updateMonthlyIncome = function(newIncome) {
+maasrotSchema.methods.updateMonthlyIncome = function (newIncome) {
     this.monthlyIncome = newIncome;
     this.maasrotTarget = Math.round(newIncome * 0.1); // 10% of income
     this.remaining = this.maasrotTarget - this.totalDonated;
@@ -83,9 +83,9 @@ maasrotSchema.methods.updateMonthlyIncome = function(newIncome) {
 };
 
 // Static method to get or create maasrot for household
-maasrotSchema.statics.getOrCreate = async function(householdId, userId, monthlyIncome = 0) {
+maasrotSchema.statics.getOrCreate = async function (householdId, userId, monthlyIncome = 0) {
     let maasrot = await this.findOne({ household: householdId });
-    
+
     if (!maasrot) {
         const maasrotTarget = Math.round(monthlyIncome * 0.1);
         maasrot = await this.create({
@@ -98,12 +98,12 @@ maasrotSchema.statics.getOrCreate = async function(householdId, userId, monthlyI
     } else if (monthlyIncome > 0 && maasrot.monthlyIncome !== monthlyIncome) {
         await maasrot.updateMonthlyIncome(monthlyIncome);
     }
-    
+
     return maasrot;
 };
 
 // Pre-save middleware to update calculated fields
-maasrotSchema.pre('save', function(next) {
+maasrotSchema.pre('save', function (next) {
     this.totalDonated = this.donations.reduce((sum, donation) => sum + donation.amount, 0);
     this.remaining = this.maasrotTarget - this.totalDonated;
     next();

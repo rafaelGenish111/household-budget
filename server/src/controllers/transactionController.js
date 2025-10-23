@@ -110,7 +110,7 @@ export const createTransaction = async (req, res) => {
                 const currentMonth = new Date();
                 currentMonth.setDate(1);
                 currentMonth.setHours(0, 0, 0, 0);
-                
+
                 const nextMonth = new Date(currentMonth);
                 nextMonth.setMonth(nextMonth.getMonth() + 1);
 
@@ -185,7 +185,7 @@ export const updateTransaction = async (req, res) => {
                 const currentMonth = new Date();
                 currentMonth.setDate(1);
                 currentMonth.setHours(0, 0, 0, 0);
-                
+
                 const nextMonth = new Date(currentMonth);
                 nextMonth.setMonth(nextMonth.getMonth() + 1);
 
@@ -252,7 +252,7 @@ export const deleteTransaction = async (req, res) => {
                 const currentMonth = new Date();
                 currentMonth.setDate(1);
                 currentMonth.setHours(0, 0, 0, 0);
-                
+
                 const nextMonth = new Date(currentMonth);
                 nextMonth.setMonth(nextMonth.getMonth() + 1);
 

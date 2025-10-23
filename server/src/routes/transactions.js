@@ -8,11 +8,11 @@ import {
     getTransactionSummary,
     getTransactionsByCategory,
 } from '../controllers/transactionController.js';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(auth);
+router.use(protect);
 
 router.get('/summary', getTransactionSummary);
 router.get('/by-category', getTransactionsByCategory);

@@ -4,11 +4,11 @@ import {
     createOrUpdateBudgetGoal,
     getRemainingBudget,
 } from '../controllers/goalController.js';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(auth);
+router.use(protect);
 
 router.post('/', createOrUpdateBudgetGoal);
 router.get('/:month', getBudgetGoal);

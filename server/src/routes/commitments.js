@@ -8,11 +8,11 @@ import {
     recordPayment,
     getUpcomingCharges,
 } from '../controllers/commitmentController.js';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(auth);
+router.use(protect);
 
 router.route('/').get(getCommitments).post(createCommitment);
 router.get('/upcoming-charges', getUpcomingCharges);

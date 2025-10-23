@@ -76,7 +76,7 @@ const MaasrotSummaryCard = () => {
                     <Typography variant="h6" fontWeight="bold">
                         מעשרות
                     </Typography>
-                    <Chip 
+                    <Chip
                         label={`${getProgressPercentage()}%`}
                         color={getProgressPercentage() >= 100 ? 'success' : 'primary'}
                         size="small"
@@ -98,12 +98,12 @@ const MaasrotSummaryCard = () => {
                         </Typography>
                     </Box>
                     <Box display="flex" alignItems="center" gap={1}>
-                        <CalendarToday 
-                            color={maasrot.remaining <= 0 ? 'success' : 'warning'} 
-                            fontSize="small" 
+                        <CalendarToday
+                            color={maasrot.remaining <= 0 ? 'success' : 'warning'}
+                            fontSize="small"
                         />
-                        <Typography 
-                            variant="body2" 
+                        <Typography
+                            variant="body2"
                             color={getProgressColor(maasrot.remaining)}
                             fontWeight="bold"
                         >
@@ -114,11 +114,11 @@ const MaasrotSummaryCard = () => {
 
                 {/* Progress Bar */}
                 <Box mb={3}>
-                    <Box 
-                        sx={{ 
-                            width: '100%', 
-                            height: 6, 
-                            backgroundColor: 'grey.200', 
+                    <Box
+                        sx={{
+                            width: '100%',
+                            height: 6,
+                            backgroundColor: 'grey.200',
                             borderRadius: 3,
                             overflow: 'hidden'
                         }}

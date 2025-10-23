@@ -47,7 +47,7 @@ const AddDonationDialog = ({ open, onClose, donation }) => {
         resolver: yupResolver(schema),
         defaultValues: {
             amount: donation?.amount || 0,
-            date: donation?.date 
+            date: donation?.date
                 ? format(new Date(donation.date), 'yyyy-MM-dd')
                 : format(new Date(), 'yyyy-MM-dd'),
             description: donation?.description || '',
@@ -58,7 +58,7 @@ const AddDonationDialog = ({ open, onClose, donation }) => {
         if (open) {
             reset({
                 amount: donation?.amount || 0,
-                date: donation?.date 
+                date: donation?.date
                     ? format(new Date(donation.date), 'yyyy-MM-dd')
                     : format(new Date(), 'yyyy-MM-dd'),
                 description: donation?.description || '',
@@ -175,7 +175,7 @@ const AddDonationDialog = ({ open, onClose, donation }) => {
                         }}
                     >
                         <Typography variant="body2" color="info.contrastText">
-                            💡 <strong>טיפ:</strong> המעשרות הן 10% מההכנסה החודשית שלך. 
+                            💡 <strong>טיפ:</strong> המעשרות הן 10% מההכנסה החודשית שלך.
                             תוכל לעקוב אחר ההתקדמות שלך בסיכום למעלה.
                         </Typography>
                     </Box>

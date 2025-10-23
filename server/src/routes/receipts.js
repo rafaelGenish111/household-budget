@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { auth } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 import {
     scanReceiptImage,
     getReceipts,

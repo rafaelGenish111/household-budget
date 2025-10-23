@@ -187,9 +187,9 @@ const Maasrot = () => {
                                         יתרה נותרת
                                     </Typography>
                                 </Box>
-                                <Typography 
-                                    variant="h4" 
-                                    fontWeight="bold" 
+                                <Typography
+                                    variant="h4"
+                                    fontWeight="bold"
                                     color={getProgressColor(maasrot.remaining)}
                                 >
                                     ₪{maasrot.remaining.toLocaleString()}
@@ -206,17 +206,17 @@ const Maasrot = () => {
                             <Typography variant="h6" fontWeight="bold">
                                 התקדמות במעשרות
                             </Typography>
-                            <Chip 
+                            <Chip
                                 label={`${getProgressPercentage()}%`}
                                 color={getProgressPercentage() >= 100 ? 'success' : 'primary'}
                                 size="small"
                             />
                         </Box>
-                        <Box 
-                            sx={{ 
-                                width: '100%', 
-                                height: 8, 
-                                backgroundColor: 'grey.200', 
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: 8,
+                                backgroundColor: 'grey.200',
                                 borderRadius: 4,
                                 overflow: 'hidden'
                             }}
@@ -244,7 +244,7 @@ const Maasrot = () => {
                                 היסטוריית תרומות
                             </Typography>
                         </Box>
-                        
+
                         {maasrot.donations.length === 0 ? (
                             <Box textAlign="center" py={8} sx={{ px: 3 }}>
                                 <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -272,7 +272,7 @@ const Maasrot = () => {
                                                         <Typography variant="h6" fontWeight="bold">
                                                             ₪{donation.amount.toLocaleString()}
                                                         </Typography>
-                                                        <Chip 
+                                                        <Chip
                                                             label={format(new Date(donation.date), 'dd/MM/yyyy', { locale: he })}
                                                             size="small"
                                                             variant="outlined"
