@@ -34,6 +34,7 @@ import TrendChart from '../../components/charts/TrendChart';
 import ComparisonCard from '../../components/dashboard/ComparisonCard';
 import DebtsSummaryCard from '../../components/dashboard/DebtsSummaryCard';
 import CommitmentsWidget from '../../components/dashboard/CommitmentsWidget';
+import MaasrotSummaryCard from '../../components/dashboard/MaasrotSummaryCard';
 import { useTimeRange } from '../../hooks/useTimeRange';
 import {
     getTimeRangeStats,
@@ -234,6 +235,9 @@ const Dashboard = () => {
             <Grid container spacing={3} mb={4}>
                 <Grid item xs={12} md={6} lg={4}>
                     <DebtsSummaryCard />
+                </Grid>
+                <Grid item xs={12} md={6} lg={4}>
+                    <MaasrotSummaryCard />
                 </Grid>
                 {/* Trend Chart */}
                 <Grid item xs={12} md={6} lg={8}>

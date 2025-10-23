@@ -21,6 +21,7 @@ import multiImageReceiptRoutes from './routes/multiImageReceipt.js';
 import recurringPaymentsRoutes from './routes/recurringPayments.js';
 import debtRoutes from './routes/debts.js';
 import statisticsRoutes from './routes/statistics.js';
+import maasrotRoutes from './routes/maasrot.js';
 import { startRecurringPaymentsJob } from './jobs/recurringPayments.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -144,6 +145,7 @@ app.use('/api/multi-receipt', multiImageReceiptRoutes);
 app.use('/api/recurring-payments', recurringPaymentsRoutes);
 app.use('/api/debts', debtRoutes);
 app.use('/api/statistics', statisticsRoutes);
+app.use('/api/maasrot', maasrotRoutes);
 
 // Serve static files (uploads)
 app.use('/uploads', express.static('uploads'));
@@ -166,7 +168,8 @@ app.get('/', (req, res) => {
             ai: '/api/ai',
             receipts: '/api/receipts',
             multiReceipt: '/api/multi-receipt',
-            statistics: '/api/statistics'
+            statistics: '/api/statistics',
+            maasrot: '/api/maasrot'
         },
         timestamp: new Date().toISOString(),
     });

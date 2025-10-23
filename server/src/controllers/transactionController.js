@@ -1,4 +1,5 @@
 import Transaction from '../models/Transaction.js';
+import Maasrot from '../models/Maasrot.js';
 import mongoose from 'mongoose';
 
 // @desc    Get all transactions
@@ -102,6 +103,36 @@ export const createTransaction = async (req, res) => {
 
         const transaction = await Transaction.create(transactionData);
 
+        // Update maasrot if this is an income transaction
+        if (transaction.type === 'income') {
+            try {
+                // Calculate monthly income for current month
+                const currentMonth = new Date();
+                currentMonth.setDate(1);
+                currentMonth.setHours(0, 0, 0, 0);
+                
+                const nextMonth = new Date(currentMonth);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+                const incomeTransactions = await Transaction.find({
+                    household: req.user.household,
+                    type: 'income',
+                    date: {
+                        $gte: currentMonth,
+                        $lt: nextMonth
+                    }
+                });
+
+                const monthlyIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+                // Update or create maasrot record
+                await Maasrot.getOrCreate(req.user.household, req.user._id, monthlyIncome);
+            } catch (maasrotError) {
+                console.error('Error updating maasrot:', maasrotError);
+                // Don't fail the transaction creation if maasrot update fails
+            }
+        }
+
         res.status(201).json({
             success: true,
             transaction,
@@ -141,10 +172,41 @@ export const updateTransaction = async (req, res) => {
             req.body.installmentAmount = req.body.amount / req.body.installments;
         }
 
+        const oldType = transaction.type;
         transaction = await Transaction.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true,
         });
+
+        // Update maasrot if transaction type changed to income or was income
+        if (transaction.type === 'income' || oldType === 'income') {
+            try {
+                // Calculate monthly income for current month
+                const currentMonth = new Date();
+                currentMonth.setDate(1);
+                currentMonth.setHours(0, 0, 0, 0);
+                
+                const nextMonth = new Date(currentMonth);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+                const incomeTransactions = await Transaction.find({
+                    household: req.user.household,
+                    type: 'income',
+                    date: {
+                        $gte: currentMonth,
+                        $lt: nextMonth
+                    }
+                });
+
+                const monthlyIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+                // Update or create maasrot record
+                await Maasrot.getOrCreate(req.user.household, req.user._id, monthlyIncome);
+            } catch (maasrotError) {
+                console.error('Error updating maasrot:', maasrotError);
+                // Don't fail the transaction update if maasrot update fails
+            }
+        }
 
         res.json({
             success: true,
@@ -180,7 +242,38 @@ export const deleteTransaction = async (req, res) => {
             });
         }
 
+        const wasIncome = transaction.type === 'income';
         await transaction.deleteOne();
+
+        // Update maasrot if deleted transaction was income
+        if (wasIncome) {
+            try {
+                // Calculate monthly income for current month
+                const currentMonth = new Date();
+                currentMonth.setDate(1);
+                currentMonth.setHours(0, 0, 0, 0);
+                
+                const nextMonth = new Date(currentMonth);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+                const incomeTransactions = await Transaction.find({
+                    household: req.user.household,
+                    type: 'income',
+                    date: {
+                        $gte: currentMonth,
+                        $lt: nextMonth
+                    }
+                });
+
+                const monthlyIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+                // Update or create maasrot record
+                await Maasrot.getOrCreate(req.user.household, req.user._id, monthlyIncome);
+            } catch (maasrotError) {
+                console.error('Error updating maasrot:', maasrotError);
+                // Don't fail the transaction deletion if maasrot update fails
+            }
+        }
 
         res.json({
             success: true,

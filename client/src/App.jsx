@@ -27,6 +27,7 @@ import SavingsList from './pages/Savings/SavingsList';
 import Commitments from './pages/Commitments/Commitments';
 import BudgetGoals from './pages/Goals/BudgetGoals';
 import Settings from './pages/Settings/Settings';
+import Maasrot from './pages/Maasrot/Maasrot';
 
 // Create RTL cache
 const cacheRtl = createCache({
@@ -74,6 +75,7 @@ const AppContent = () => {
                                 <Route path="savings" element={<SavingsList />} />
                                 <Route path="commitments" element={<Commitments />} />
                                 <Route path="goals" element={<BudgetGoals />} />
+                                <Route path="maasrot" element={<Maasrot />} />
                                 <Route path="settings" element={<Settings />} />
                             </Route>
 

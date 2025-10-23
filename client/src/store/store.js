@@ -7,6 +7,7 @@ import goalsReducer from './slices/goalsSlice';
 import categoriesReducer from './slices/categoriesSlice';
 import themeReducer from './slices/themeSlice';
 import debtsReducer from './slices/debtsSlice';
+import maasrotReducer from './slices/maasrotSlice';
 
 export const store = configureStore({
     reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
         categories: categoriesReducer,
         theme: themeReducer,
         debts: debtsReducer,
+        maasrot: maasrotReducer,
     },
 });
 

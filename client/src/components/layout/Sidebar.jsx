@@ -15,6 +15,7 @@ import {
     AccountBalance,
     TrackChanges,
     Settings,
+    VolunteerActivism,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -26,6 +27,7 @@ const menuItems = [
     { text: 'חסכונות', icon: <Savings />, path: '/savings' },
     { text: 'התחייבויות', icon: <AccountBalance />, path: '/commitments' },
     { text: 'יעדי תקציב', icon: <TrackChanges />, path: '/goals' },
+    { text: 'מעשרות', icon: <VolunteerActivism />, path: '/maasrot' },
     { text: 'הגדרות', icon: <Settings />, path: '/settings' },
 ];
 
