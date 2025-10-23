@@ -9,7 +9,7 @@ import {
     getDebtsSummary,
     getUpcomingDebts,
 } from '../controllers/debtController.js';
-import { auth as protect } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 

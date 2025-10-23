@@ -9,7 +9,7 @@ router.post('/process-now', auth, async (req, res) => {
     try {
         console.log('🔧 הפעלה ידנית של עיבוד תשלומים חוזרים...');
         const processedCount = await processAllRecurringPayments();
-        
+
         res.json({
             success: true,
             message: `עובדו ${processedCount} תשלומים בהצלחה`,

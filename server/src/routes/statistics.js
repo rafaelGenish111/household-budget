@@ -1,5 +1,5 @@
 import express from 'express';
-import { auth as protect } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 import {
     getTimeRangeStats,
     getCategoryBreakdown,
