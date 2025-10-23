@@ -5,7 +5,7 @@ import { processAllRecurringPayments } from '../jobs/recurringPayments.js';
 const router = express.Router();
 
 // Route לבדיקה ידנית - רק למשתמשים מחוברים
-router.post('/process-now', auth, async (req, res) => {
+router.post('/process-now', protect, async (req, res) => {
     try {
         console.log('🔧 הפעלה ידנית של עיבוד תשלומים חוזרים...');
         const processedCount = await processAllRecurringPayments();

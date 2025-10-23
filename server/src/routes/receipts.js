@@ -25,10 +25,10 @@ const upload = multer({
     },
 });
 
-router.post('/scan', auth, upload.single('receipt'), scanReceiptImage);
-router.get('/', auth, getReceipts);
-router.get('/:id', auth, getReceiptById);
-router.delete('/:id', auth, deleteReceipt);
+router.post('/scan', protect, upload.single('receipt'), scanReceiptImage);
+router.get('/', protect, getReceipts);
+router.get('/:id', protect, getReceiptById);
+router.delete('/:id', protect, deleteReceipt);
 
 export default router;
 
