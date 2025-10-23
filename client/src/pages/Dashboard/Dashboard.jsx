@@ -222,11 +222,11 @@ const Dashboard = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <StatCard
-                        title={displayStats.dailyAverage > 0 ? "ממוצע יומי" : "סך חסכונות"}
-                        value={displayStats.dailyAverage > 0 ? formatCurrency(displayStats.dailyAverage) : formatCurrency(totalSavings)}
-                        icon={displayStats.dailyAverage > 0 ? <Timeline sx={{ color: 'white' }} /> : <SavingsIcon sx={{ color: 'white' }} />}
-                        color={displayStats.dailyAverage > 0 ? "#ff9800" : "#9c27b0"}
-                        onClick={() => navigate(displayStats.dailyAverage > 0 ? '/transactions' : '/savings')}
+                        title="חסכונות"
+                        value={formatCurrency(totalSavings)}
+                        icon={<SavingsIcon sx={{ color: 'white' }} />}
+                        color="#9c27b0"
+                        onClick={() => navigate('/savings')}
                     />
                 </Grid>
             </Grid>

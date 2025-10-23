@@ -187,9 +187,9 @@ const Maasrot = () => {
                                         יתרה נותרת
                                     </Typography>
                                 </Box>
-                                <Typography 
-                                    variant="h4" 
-                                    fontWeight="bold" 
+                                <Typography
+                                    variant="h4"
+                                    fontWeight="bold"
                                     color={getProgressColor(maasrot?.remaining || 0)}
                                 >
                                     ₪{(maasrot?.remaining || 0).toLocaleString()}
