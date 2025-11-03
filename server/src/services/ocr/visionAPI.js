@@ -29,20 +29,41 @@ async function getPdfParse() {
 function getCredentials() {
     let credentials;
 
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-        // אם זה JSON string (ב-Vercel), פרס אותו
-        if (process.env.GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
-            credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
-        } else {
-            // אם זה נתיב לקובץ (ב-development), קרא את הקובץ
-            credentials = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
-        }
-    } else {
-        throw new Error('GOOGLE_APPLICATION_CREDENTIALS לא מוגדר');
-    }
+    try {
+        if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+            // אם זה JSON string (ב-Vercel), פרס אותו
+            if (process.env.GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
+                try {
+                    credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+                } catch (parseError) {
+                    throw new Error(`שגיאה בפענוח JSON של GOOGLE_APPLICATION_CREDENTIALS: ${parseError.message}`);
+                }
+            } else {
+                // אם זה נתיב לקובץ (ב-development), קרא את הקובץ
+                try {
+                    if (!fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)) {
+                        throw new Error(`קובץ המפתחות לא נמצא: ${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
+                    }
+                    credentials = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+                } catch (fileError) {
+                    throw new Error(`שגיאה בקריאת קובץ המפתחות: ${fileError.message}`);
+                }
+            }
 
-    console.log('🔑 משתמש ב-Service Account:', credentials.client_email);
-    console.log('📦 Project ID:', credentials.project_id);
+            // אימות שהקובץ תקין
+            if (!credentials.project_id || !credentials.client_email || !credentials.private_key) {
+                throw new Error('קובץ המפתחות לא תקין - חסרים שדות נדרשים (project_id, client_email, private_key)');
+            }
+
+            console.log('🔑 משתמש ב-Service Account:', credentials.client_email);
+            console.log('📦 Project ID:', credentials.project_id);
+        } else {
+            throw new Error('GOOGLE_APPLICATION_CREDENTIALS לא מוגדר - נדרש להגדיר משתנה סביבה זה');
+        }
+    } catch (error) {
+        console.error('❌ שגיאה בטעינת פרטי האימות:', error.message);
+        throw error;
+    }
 
     return credentials;
 }
@@ -68,12 +89,27 @@ export async function scanImageWithVision(imageBuffer, options = {}) {
         console.log('🔍 מתחיל סריקה עם Google Vision API...');
 
         // בדיקה אם נדרש עיבוד מקדים
-        if (usePreprocessing && await needsPreprocessing(imageBuffer)) {
-            console.log('🔧 מבצע עיבוד מקדים...');
-            const preprocessingResult = await preprocessImage(imageBuffer);
-            processedBuffer = preprocessingResult.processedBuffer;
-            preprocessingApplied = true;
-            console.log('✅ עיבוד מקדים הושלם');
+        if (usePreprocessing) {
+            try {
+                const needsPreprocess = await needsPreprocessing(imageBuffer);
+                if (needsPreprocess) {
+                    console.log('🔧 מבצע עיבוד מקדים...');
+                    try {
+                        const preprocessingResult = await preprocessImage(imageBuffer);
+                        processedBuffer = preprocessingResult.processedBuffer;
+                        preprocessingApplied = true;
+                        console.log('✅ עיבוד מקדים הושלם');
+                    } catch (preprocessError) {
+                        console.warn('⚠️ שגיאה בעיבוד מקדים:', preprocessError.message);
+                        console.log('📝 ממשיך ללא עיבוד מקדים...');
+                        // המשך עם הקובץ המקורי אם preprocessing נכשל
+                    }
+                }
+            } catch (needsPreprocessError) {
+                console.warn('⚠️ שגיאה בבדיקת צורך בעיבוד מקדים:', needsPreprocessError.message);
+                console.log('📝 ממשיך ללא עיבוד מקדים...');
+                // המשך ללא preprocessing אם הבדיקה נכשלה
+            }
         }
 
         const credentials = getCredentials();

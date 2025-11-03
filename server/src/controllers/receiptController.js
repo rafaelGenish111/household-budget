@@ -27,10 +27,18 @@ export const scanReceiptImage = async (req, res) => {
         // אם זה תמונה, בצע אופטימיזציה
         if (mimeType.startsWith('image/')) {
             console.log('🖼️ מבצע אופטימיזציה לתמונה...');
-            fileBuffer = await sharp(fileBuffer)
-                .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
-                .jpeg({ quality: 90 })
-                .toBuffer();
+            try {
+                fileBuffer = await sharp(fileBuffer)
+                    .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
+                    .jpeg({ quality: 90 })
+                    .toBuffer();
+                console.log('✅ אופטימיזציה הושלמה בהצלחה');
+            } catch (sharpError) {
+                console.warn('⚠️ שגיאה בעיבוד התמונה עם Sharp:', sharpError.message);
+                console.log('📝 ממשיך ללא אופטימיזציה...');
+                // המשך עם הקובץ המקורי אם sharp נכשל
+                // זה יכול לקרות בסביבות serverless או אם sharp לא מותקן נכון
+            }
         }
 
         // Scan receipt with enhanced OCR system
@@ -101,10 +109,32 @@ export const scanReceiptImage = async (req, res) => {
             error: scannedData.error || false
         });
     } catch (error) {
-        console.error('Receipt scan error:', error);
+        console.error('❌ Receipt scan error:', error);
+        console.error('Error stack:', error.stack);
+        
+        // זיהוי סוג השגיאה והחזרת הודעה מתאימה
+        let errorMessage = 'שגיאה בסריקת החשבונית';
+        let errorDetails = error.message;
+        
+        if (error.message.includes('GOOGLE_APPLICATION_CREDENTIALS')) {
+            errorMessage = 'Vision API לא מוגדר';
+            errorDetails = 'נדרש להגדיר את GOOGLE_APPLICATION_CREDENTIALS במשתני הסביבה';
+        } else if (error.message.includes('PERMISSION_DENIED') || error.message.includes('billing')) {
+            errorMessage = 'Vision API לא זמין';
+            errorDetails = 'נדרש להפעיל Billing ו-Vision API בפרויקט Google Cloud';
+        } else if (error.message.includes('Sharp') || error.message.includes('sharp')) {
+            errorMessage = 'שגיאה בעיבוד התמונה';
+            errorDetails = 'התמונה לא עובדה כראוי, אבל הסריקה יכולה להמשיך';
+        } else if (error.message.includes('timeout') || error.message.includes('TIMEOUT')) {
+            errorMessage = 'פסק זמן בסריקה';
+            errorDetails = 'הסריקה לקחה יותר מדי זמן. נסה שוב עם תמונה קטנה יותר';
+        }
+        
         res.status(500).json({
-            error: 'שגיאה בסריקת החשבונית',
-            details: error.message,
+            error: errorMessage,
+            details: errorDetails,
+            type: error.name || 'UnknownError',
+            timestamp: new Date().toISOString()
         });
     }
 };
