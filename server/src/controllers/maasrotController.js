@@ -8,38 +8,63 @@ export const getMaasrot = async (req, res) => {
     try {
         const household = req.user.household;
         const userId = req.user._id;
+        
+        // Get month and year from query params (optional)
+        const { month, year } = req.query;
+        
+        // Calculate monthly income from transactions for specified month
+        let targetMonth;
+        if (month && year) {
+            targetMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
+        } else {
+            targetMonth = new Date();
+        }
+        targetMonth.setDate(1);
+        targetMonth.setHours(0, 0, 0, 0);
 
-        // Calculate monthly income from transactions
-        const currentMonth = new Date();
-        currentMonth.setDate(1);
-        currentMonth.setHours(0, 0, 0, 0);
-
-        const nextMonth = new Date(currentMonth);
+        const nextMonth = new Date(targetMonth);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
 
         const incomeTransactions = await Transaction.find({
             household,
             type: 'income',
             date: {
-                $gte: currentMonth,
+                $gte: targetMonth,
                 $lt: nextMonth
             }
         });
 
         const monthlyIncome = incomeTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
 
-        // Get or create maasrot record
+        // Get or create maasrot record (but don't update it if month is specified)
         const maasrot = await Maasrot.getOrCreate(household, userId, monthlyIncome);
+        
+        // Filter donations by month if month/year specified
+        let filteredDonations = maasrot.donations;
+        if (month && year) {
+            const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
+            const endOfMonth = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+            
+            filteredDonations = maasrot.donations.filter(donation => {
+                const donationDate = new Date(donation.date);
+                return donationDate >= startOfMonth && donationDate <= endOfMonth;
+            });
+        }
+        
+        // Calculate totals for filtered donations
+        const totalDonatedForMonth = filteredDonations.reduce((sum, donation) => sum + donation.amount, 0);
+        const maasrotTargetForMonth = Math.round(monthlyIncome * 0.1); // 10% of monthly income
+        const remainingForMonth = maasrotTargetForMonth - totalDonatedForMonth;
 
         res.json({
             success: true,
             maasrot: {
                 _id: maasrot._id,
-                monthlyIncome: maasrot.monthlyIncome,
-                maasrotTarget: maasrot.maasrotTarget,
-                totalDonated: maasrot.totalDonated,
-                remaining: maasrot.remaining,
-                donations: maasrot.donations.sort((a, b) => new Date(b.date) - new Date(a.date)),
+                monthlyIncome: monthlyIncome,
+                maasrotTarget: maasrotTargetForMonth,
+                totalDonated: totalDonatedForMonth,
+                remaining: remainingForMonth,
+                donations: filteredDonations.sort((a, b) => new Date(b.date) - new Date(a.date)),
                 lastUpdated: maasrot.lastUpdated,
             }
         });

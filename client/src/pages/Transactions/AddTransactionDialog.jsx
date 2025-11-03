@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -121,35 +121,38 @@ const AddTransactionDialog = ({ open, onClose, transaction, defaultType }) => {
         }
     }, [watchType, watchCategory]);
 
-    const handleScanComplete = (scannedData) => {
-        // עדכון השדות עם הנתונים שנסרקו
-        if (scannedData.date) {
-            try {
-                const dateObj = new Date(scannedData.date);
-                if (!isNaN(dateObj.getTime())) {
-                    setValue('date', format(dateObj, 'yyyy-MM-dd'));
+    const handleScanComplete = useCallback((scannedData) => {
+        // Use requestAnimationFrame to batch updates and prevent flickering
+        requestAnimationFrame(() => {
+            // עדכון השדות עם הנתונים שנסרקו
+            if (scannedData.date) {
+                try {
+                    const dateObj = new Date(scannedData.date);
+                    if (!isNaN(dateObj.getTime())) {
+                        setValue('date', format(dateObj, 'yyyy-MM-dd'), { shouldDirty: true });
+                    }
+                } catch (error) {
+                    console.error('Invalid date from scanner:', scannedData.date);
                 }
-            } catch (error) {
-                console.error('Invalid date from scanner:', scannedData.date);
             }
-        }
-        if (scannedData.total) {
-            setValue('amount', scannedData.total);
-        }
-        if (scannedData.category) {
-            setValue('category', scannedData.category);
-        }
-        if (scannedData.subcategory) {
-            setValue('subcategory', scannedData.subcategory);
-        }
-        if (scannedData.businessName) {
-            setValue('description', scannedData.businessName);
-        }
+            if (scannedData.total) {
+                setValue('amount', scannedData.total, { shouldDirty: true });
+            }
+            if (scannedData.category) {
+                setValue('category', scannedData.category, { shouldDirty: true });
+            }
+            if (scannedData.subcategory) {
+                setValue('subcategory', scannedData.subcategory, { shouldDirty: true });
+            }
+            if (scannedData.businessName) {
+                setValue('description', scannedData.businessName, { shouldDirty: true });
+            }
 
-        // שמירת מידע על החשבונית
-        setReceiptData(scannedData);
-        setShowScanner(false);
-    };
+            // שמירת מידע על החשבונית
+            setReceiptData(scannedData);
+            setShowScanner(false);
+        });
+    }, [setValue]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -266,9 +269,17 @@ const AddTransactionDialog = ({ open, onClose, transaction, defaultType }) => {
                                         {...field}
                                         options={filteredCategories.map((cat) => cat.name)}
                                         freeSolo
+                                        disableAutoFocus
+                                        openOnFocus={false}
                                         onChange={(e, value) => {
                                             field.onChange(value || '');
                                             setValue('subcategory', '');
+                                        }}
+                                        ListboxProps={{
+                                            style: {
+                                                maxHeight: '300px',
+                                                overflow: 'auto',
+                                            },
                                         }}
                                         renderInput={(params) => (
                                             <TextField
@@ -276,6 +287,11 @@ const AddTransactionDialog = ({ open, onClose, transaction, defaultType }) => {
                                                 label="קטגוריה"
                                                 error={!!errors.category}
                                                 helperText={errors.category?.message}
+                                                autoComplete="off"
+                                                inputProps={{
+                                                    ...params.inputProps,
+                                                    autoComplete: 'off',
+                                                }}
                                             />
                                         )}
                                     />

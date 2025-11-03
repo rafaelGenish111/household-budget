@@ -20,7 +20,7 @@ import {
     TablePagination,
 } from '@mui/material';
 import { Add, Edit, Delete, Search } from '@mui/icons-material';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { he } from 'date-fns/locale';
 import {
     fetchTransactions,
@@ -29,6 +29,7 @@ import {
 import { fetchCategories } from '../../store/slices/categoriesSlice';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import AddTransactionDialog from './AddTransactionDialog';
+import MonthSelector from '../../components/common/MonthSelector';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const TransactionsList = () => {
@@ -44,12 +45,25 @@ const TransactionsList = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editTransaction, setEditTransaction] = useState(null);
     const [dialogDefaultType, setDialogDefaultType] = useState('expense');
+    const [selectedMonth, setSelectedMonth] = useState(new Date());
+    
+    // Initialize filters with current month dates
+    const getMonthDates = (date) => {
+        const start = startOfMonth(date);
+        const end = endOfMonth(date);
+        return {
+            startDate: start.toISOString(),
+            endDate: end.toISOString(),
+        };
+    };
+    
     const [filters, setFilters] = useState({
-        type: searchParams.get('type') || '',
+        type: searchParams.get('type') || 'expense', // Default to expenses
         category: '',
         search: '',
         page: 1,
         limit: 25,
+        ...getMonthDates(new Date()),
     });
 
     useEffect(() => {
@@ -59,6 +73,16 @@ const TransactionsList = () => {
     useEffect(() => {
         dispatch(fetchTransactions(filters));
     }, [dispatch, filters]);
+    
+    // Update filters when month changes
+    useEffect(() => {
+        const monthDates = getMonthDates(selectedMonth);
+        setFilters((prev) => ({
+            ...prev,
+            ...monthDates,
+            page: 1, // Reset to first page when month changes
+        }));
+    }, [selectedMonth]);
 
     // Back button: אם הגענו עם type=income/expense, חזרה תחזיר לדף קודם
     useEffect(() => {
@@ -131,28 +155,40 @@ const TransactionsList = () => {
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Box>
                     <Typography variant="h4" fontWeight="bold">
-                        תנועות
+                        {filters.type === 'expense' ? 'הוצאות' : filters.type === 'income' ? 'הכנסות' : 'תנועות'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                         סה"כ {count} תנועות
                     </Typography>
                 </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={handleAddExpense}
-                >
-                    הוסף הוצאה
-                </Button>
-                <Button
-                    variant="outlined"
-                    startIcon={<Add />}
-                    onClick={handleAddIncome}
-                    sx={{ ml: 1 }}
-                >
-                    הוסף הכנסה
-                </Button>
+                <Box display="flex" gap={2}>
+                    <Button
+                        variant="contained"
+                        startIcon={<Add />}
+                        onClick={handleAddExpense}
+                        color="error"
+                    >
+                        הוסף הוצאה
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={<Add />}
+                        onClick={handleAddIncome}
+                        color="success"
+                    >
+                        הוסף הכנסה
+                    </Button>
+                </Box>
             </Box>
+            
+            {/* Month Selector */}
+            <Paper sx={{ p: 2, mb: 3 }}>
+                <MonthSelector
+                    value={selectedMonth}
+                    onChange={setSelectedMonth}
+                    label="בחר חודש"
+                />
+            </Paper>
 
             {/* Filters */}
             <Paper sx={{ p: 2, mb: 3 }}>

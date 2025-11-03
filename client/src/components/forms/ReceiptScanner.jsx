@@ -65,7 +65,8 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
     const scanReceipt = async (file) => {
         setScanning(true);
         setError(null);
-        setResult(null);
+        // Don't clear result immediately to prevent flickering
+        // setResult(null);
 
         try {
             const formData = new FormData();
@@ -77,28 +78,39 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                 },
             });
 
-            setResult(response.data);
+            // Use requestAnimationFrame to prevent flickering
+            requestAnimationFrame(() => {
+                setResult(response.data);
+                setScanning(false);
+            });
         } catch (err) {
-            setError(err.response?.data?.error || 'שגיאה בסריקת החשבונית');
+            requestAnimationFrame(() => {
+                setError(err.response?.data?.error || 'שגיאה בסריקת החשבונית');
+                setScanning(false);
+            });
             console.error(err);
-        } finally {
-            setScanning(false);
         }
     };
 
     const handleUseData = () => {
         if (result) {
-            onScanComplete(result);
-            handleClose();
+            // Use setTimeout to prevent flickering when closing
+            setTimeout(() => {
+                onScanComplete(result);
+                handleClose();
+            }, 100);
         }
     };
 
     const handleClose = () => {
-        setPreview(null);
-        setResult(null);
-        setError(null);
-        setScanning(false);
-        onClose();
+        // Clear states with delay to prevent flickering
+        setTimeout(() => {
+            setPreview(null);
+            setResult(null);
+            setError(null);
+            setScanning(false);
+            onClose();
+        }, 50);
     };
 
     const handleCameraCapture = () => {
@@ -248,7 +260,7 @@ export default function ReceiptScanner({ open, onClose, onScanComplete }) {
                                 </Alert>
                             )}
 
-                            {result && (
+                            {result && !scanning && (
                                 <Box>
                                     <Alert
                                         severity={result.qualitySummary?.level === 'excellent' || result.qualitySummary?.level === 'good' ? 'success' :

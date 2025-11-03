@@ -35,6 +35,7 @@ import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { fetchMaasrot, addDonation, updateDonation, deleteDonation } from '../../store/slices/maasrotSlice';
 import AddDonationDialog from '../../components/maasrot/AddDonationDialog';
+import MonthSelector from '../../components/common/MonthSelector';
 
 const Maasrot = () => {
     const dispatch = useDispatch();
@@ -43,10 +44,13 @@ const Maasrot = () => {
     const [selectedDonation, setSelectedDonation] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectedDonationId, setSelectedDonationId] = useState(null);
+    const [selectedMonth, setSelectedMonth] = useState(new Date());
 
     useEffect(() => {
-        dispatch(fetchMaasrot());
-    }, [dispatch]);
+        const month = selectedMonth.getMonth() + 1; // 1-12
+        const year = selectedMonth.getFullYear();
+        dispatch(fetchMaasrot({ month, year }));
+    }, [dispatch, selectedMonth]);
 
     const handleAddDonation = () => {
         setSelectedDonation(null);
@@ -61,6 +65,10 @@ const Maasrot = () => {
     const handleDeleteDonation = async (donationId) => {
         if (window.confirm('האם אתה בטוח שברצונך למחוק את התרומה?')) {
             await dispatch(deleteDonation(donationId));
+            // Refresh maasrot data after deletion
+            const month = selectedMonth.getMonth() + 1;
+            const year = selectedMonth.getFullYear();
+            dispatch(fetchMaasrot({ month, year }));
         }
     };
 
@@ -123,6 +131,15 @@ const Maasrot = () => {
                         הוסף תרומה
                     </Button>
                 </Box>
+                
+                {/* Month Selector */}
+                <Paper sx={{ p: 2, mb: 4 }}>
+                    <MonthSelector
+                        value={selectedMonth}
+                        onChange={setSelectedMonth}
+                        label="בחר חודש"
+                    />
+                </Paper>
 
                 {/* Summary Cards */}
                 <Grid container spacing={3} mb={4}>
@@ -343,6 +360,10 @@ const Maasrot = () => {
                 onClose={() => {
                     setDialogOpen(false);
                     setSelectedDonation(null);
+                    // Refresh maasrot data after dialog closes
+                    const month = selectedMonth.getMonth() + 1;
+                    const year = selectedMonth.getFullYear();
+                    dispatch(fetchMaasrot({ month, year }));
                 }}
                 donation={selectedDonation}
             />

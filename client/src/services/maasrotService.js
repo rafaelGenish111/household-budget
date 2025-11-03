@@ -2,8 +2,13 @@ import api from './api';
 
 export const maasrotService = {
     // Get maasrot data for household
-    getMaasrot: async () => {
-        const response = await api.get('/maasrot');
+    getMaasrot: async (month = null, year = null) => {
+        const params = {};
+        if (month !== null && year !== null) {
+            params.month = month;
+            params.year = year;
+        }
+        const response = await api.get('/maasrot', { params });
         return response.data;
     },
 

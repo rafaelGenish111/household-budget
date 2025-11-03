@@ -18,10 +18,14 @@ const initialState = {
 // Async thunks
 export const fetchMaasrot = createAsyncThunk(
     'maasrot/fetchMaasrot',
-    async (_, { rejectWithValue }) => {
+    async ({ month = null, year = null } = {}, { rejectWithValue }) => {
         try {
-            const response = await maasrotService.getMaasrot();
-            return response.maasrot;
+            const response = await maasrotService.getMaasrot(month, year);
+            if (response.success) {
+                return response.maasrot;
+            } else {
+                return rejectWithValue(response.message || 'שגיאה בטעינת נתוני המעשרות');
+            }
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'שגיאה בטעינת נתוני המעשרות');
         }
