@@ -36,6 +36,7 @@ import { he } from 'date-fns/locale';
 import { fetchMaasrot, addDonation, updateDonation, deleteDonation } from '../../store/slices/maasrotSlice';
 import AddDonationDialog from '../../components/maasrot/AddDonationDialog';
 import MonthSelector from '../../components/common/MonthSelector';
+import ExportButton from '../../components/common/ExportButton';
 
 const Maasrot = () => {
     const dispatch = useDispatch();
@@ -113,7 +114,7 @@ const Maasrot = () => {
         <Container maxWidth="lg" sx={{ py: 4 }}>
             <Paper elevation={0} sx={{ p: 3, backgroundColor: 'background.default' }}>
                 {/* Header */}
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} flexWrap="wrap" gap={2}>
                     <Box>
                         <Typography variant="h5" fontWeight="bold">
                             ניהול מעשרות
@@ -122,14 +123,22 @@ const Maasrot = () => {
                             עקוב אחר המעשרות שלך (10% מההכנסה החודשית)
                         </Typography>
                     </Box>
-                    <Button
-                        variant="contained"
-                        startIcon={<Add />}
-                        size="large"
-                        onClick={handleAddDonation}
-                    >
-                        הוסף תרומה
-                    </Button>
+                    <Box display="flex" gap={2} flexWrap="wrap">
+                        <ExportButton
+                            exportType="maasrot"
+                            month={selectedMonth.getMonth() + 1}
+                            year={selectedMonth.getFullYear()}
+                            label="ייצא לאקסל"
+                        />
+                        <Button
+                            variant="contained"
+                            startIcon={<Add />}
+                            size="large"
+                            onClick={handleAddDonation}
+                        >
+                            הוסף תרומה
+                        </Button>
+                    </Box>
                 </Box>
 
                 {/* Month Selector */}

@@ -30,6 +30,7 @@ import { fetchCategories } from '../../store/slices/categoriesSlice';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import AddTransactionDialog from './AddTransactionDialog';
 import MonthSelector from '../../components/common/MonthSelector';
+import ExportButton from '../../components/common/ExportButton';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const TransactionsList = () => {
@@ -161,7 +162,23 @@ const TransactionsList = () => {
                         סה"כ {count} תנועות
                     </Typography>
                 </Box>
-                <Box display="flex" gap={2}>
+                <Box display="flex" gap={2} flexWrap="wrap">
+                    <ExportButton
+                        exportType="transactions"
+                        filters={filters}
+                        label="ייצא תנועות"
+                    />
+                    <ExportButton
+                        exportType="monthly"
+                        month={selectedMonth.getMonth() + 1}
+                        year={selectedMonth.getFullYear()}
+                        label="ייצא דוח חודשי"
+                    />
+                    <ExportButton
+                        exportType="yearly"
+                        year={selectedMonth.getFullYear()}
+                        label="ייצא דוח שנתי"
+                    />
                     <Button
                         variant="contained"
                         startIcon={<Add />}
