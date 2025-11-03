@@ -77,7 +77,45 @@ export function extractTotal(text) {
     const parseAmounts = (s) =>
         (s.match(/\d{1,3}(?:[\,']\d{3})*\.?\d{2}|\d+\.\d{2}|\d+,\d{2}/g) || [])
             .map((x) => parseFloat(x.replace(/[,']/g, '')))
-            .filter((n) => !isNaN(n) && n > 0);
+            .filter((n) => !isNaN(n) && n > 0 && n < 100000); // סכום מקסימלי סביר לקבלה
+    
+    // מילות מפתח שמעידות שזה לא סכום אלא מספר אחר (עסק, כרטיס, וכו')
+    const excludeKeywords = [
+        'מספר עסק', 'מספר כרטיס', 'מספר מסוף', 'מספר אישור', 'מספר מנפיק',
+        'מספר שרבר', 'מספר עוסק', 'ח.ע.מ', 'ע.מ', 'מספר חשבון',
+        'מספר אישור', 'מספר אישרר', 'מספר אישור מנפיק',
+        'account number', 'card number', 'terminal number', 'merchant number',
+        'business number', 'transaction number', 'approval number'
+    ];
+    
+    // פונקציה לבדיקה אם מספר נראה כמו סכום או כמו מספר עסק/כרטיס
+    const isLikelyAmount = (amount, line) => {
+        const lowerLine = line.toLowerCase();
+        
+        // אם השורה מכילה מילות מפתח של מספרים לא-רלוונטיים - דחה
+        if (excludeKeywords.some(keyword => lowerLine.includes(keyword.toLowerCase()))) {
+            return false;
+        }
+        
+        // סכומים סבירים לקבלות (עד 50,000 ש"ח)
+        if (amount > 50000) return false;
+        
+        // סכומים חיוביים בלבד
+        if (amount <= 0) return false;
+        
+        // בדיקה אם יש נקודה עשרונית בשורה המקורית (סביר יותר שזה סכום)
+        const hasDecimalPoint = line.includes('.') && /\d+\.\d{2}/.test(line);
+        if (hasDecimalPoint) return true;
+        
+        // מספרים ארוכים מאוד (יותר מ-6 ספרות) ללא נקודה עשרונית - כנראה לא סכום
+        if (amount >= 1000000 && !line.includes('.')) return false;
+        
+        // מספרים עם יותר מ-6 ספרות ללא נקודה עשרונית - כנראה מספר עסק/כרטיס
+        const amountStr = amount.toString();
+        if (amountStr.length > 6 && !line.includes('.')) return false;
+        
+        return true;
+    };
 
     // מילות מפתח לזיהוי סכום כולל
     const totalKeywords = [
@@ -119,12 +157,15 @@ export function extractTotal(text) {
         // זיהוי סכום כולל לפי מילות מפתח
         const totalKeywordFound = totalKeywords.find(keyword => line.includes(keyword.toLowerCase()));
         if (totalKeywordFound) {
-            let amt = amountsHere.length > 0 ? amountsHere[amountsHere.length - 1] : null;
+            // סנן רק סכומים סבירים
+            const validAmounts = amountsHere.filter(amt => isLikelyAmount(amt, lines[i]));
+            let amt = validAmounts.length > 0 ? validAmounts[validAmounts.length - 1] : null;
 
             // אם לא נמצא סכום בשורה הנוכחית, בדוק בשורה הבאה
             if (amt == null && i + 1 < lines.length) {
                 const nextAmts = parseAmounts(lines[i + 1]);
-                if (nextAmts.length > 0) amt = nextAmts[nextAmts.length - 1];
+                const validNextAmounts = nextAmts.filter(amt => isLikelyAmount(amt, lines[i + 1]));
+                if (validNextAmounts.length > 0) amt = validNextAmounts[validNextAmounts.length - 1];
             }
 
             if (amt != null) {
@@ -136,8 +177,10 @@ export function extractTotal(text) {
 
         // זיהוי סכום ששולם
         if (paidKeywords.some((k) => line.includes(k))) {
-            const localMax = amountsHere.length > 0 ? Math.max(...amountsHere) : null;
-            if (localMax != null) {
+            // סנן רק סכומים סבירים
+            const validAmounts = amountsHere.filter(amt => isLikelyAmount(amt, lines[i]));
+            if (validAmounts.length > 0) {
+                const localMax = Math.max(...validAmounts);
                 paidMax = paidMax == null ? localMax : Math.max(paidMax, localMax);
                 console.log(`💳 סכום ששולם זוהה: ₪${localMax}`);
             }
@@ -145,8 +188,10 @@ export function extractTotal(text) {
 
         // זיהוי עודף
         if (changeKeywords.some((k) => line.includes(k))) {
-            const localMax = amountsHere.length > 0 ? Math.max(...amountsHere) : null;
-            if (localMax != null) {
+            // סנן רק סכומים סבירים
+            const validAmounts = amountsHere.filter(amt => isLikelyAmount(amt, lines[i]));
+            if (validAmounts.length > 0) {
+                const localMax = Math.max(...validAmounts);
                 changeAmt = localMax;
                 console.log(`🔄 עודף זוהה: ₪${localMax}`);
             }
@@ -175,17 +220,64 @@ export function extractTotal(text) {
     }
 
     // fallback: קח את הסכום הגבוה ביותר שקטן או שווה לסכום ששולם
-    const allAmounts = parseAmounts(text);
+    // חשוב: סנן מספרים שנראים כמו מספרי עסק/כרטיס
+    const allAmounts = [];
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const amountsHere = parseAmounts(line);
+        // סנן רק סכומים סבירים
+        const validAmounts = amountsHere.filter(amt => isLikelyAmount(amt, line));
+        allAmounts.push(...validAmounts);
+    }
+    
     if (allAmounts.length) {
         if (paidMax != null) {
+            // עדיפות לסכומים שקטנים או שווים לסכום ששולם
             const candidates = allAmounts.filter((n) => n <= paidMax + 0.01);
             if (candidates.length) {
-                const maxCandidate = Math.max(...candidates);
+                // אם יש כמה מועמדים, עדיפות לסכומים עם נקודה עשרונית
+                const withDecimal = candidates.filter(n => {
+                    const lineIndex = lines.findIndex(line => 
+                        parseAmounts(line).includes(n) && line.includes('.')
+                    );
+                    return lineIndex !== -1;
+                });
+                
+                const finalCandidates = withDecimal.length > 0 ? withDecimal : candidates;
+                const maxCandidate = Math.max(...finalCandidates);
                 console.log(`🎯 סכום מקסימלי מתאים: ₪${maxCandidate}`);
                 return round2(maxCandidate);
             }
         }
 
+        // אם אין סכום ששולם, עדיפות לסכומים עם נקודה עשרונית וקטנים מ-10,000
+        const reasonableAmounts = allAmounts.filter(n => {
+            const lineIndex = lines.findIndex(line => 
+                parseAmounts(line).includes(n)
+            );
+            if (lineIndex === -1) return false;
+            const line = lines[lineIndex];
+            // עדיפות לסכומים עם נקודה עשרונית
+            const hasDecimal = line.includes('.') && /\d+\.\d{2}/.test(line);
+            // וקטנים מ-10,000 (יותר סבירים לקבלות)
+            return hasDecimal && n < 10000;
+        });
+        
+        if (reasonableAmounts.length > 0) {
+            const maxAmount = Math.max(...reasonableAmounts);
+            console.log(`📊 סכום מקסימלי סביר: ₪${maxAmount}`);
+            return round2(maxAmount);
+        }
+        
+        // אם אין סכומים עם נקודה עשרונית, קח את המקסימלי הקטן מ-10,000
+        const smallAmounts = allAmounts.filter(n => n < 10000);
+        if (smallAmounts.length > 0) {
+            const maxAmount = Math.max(...smallAmounts);
+            console.log(`📊 סכום מקסימלי קטן: ₪${maxAmount}`);
+            return round2(maxAmount);
+        }
+        
+        // רק אם אין שום דבר אחר, קח את המקסימלי הכללי
         const maxAmount = Math.max(...allAmounts);
         console.log(`📊 סכום מקסימלי כללי: ₪${maxAmount}`);
         return round2(maxAmount);
