@@ -111,11 +111,11 @@ export const scanReceiptImage = async (req, res) => {
     } catch (error) {
         console.error('❌ Receipt scan error:', error);
         console.error('Error stack:', error.stack);
-        
+
         // זיהוי סוג השגיאה והחזרת הודעה מתאימה
         let errorMessage = 'שגיאה בסריקת החשבונית';
         let errorDetails = error.message;
-        
+
         if (error.message.includes('GOOGLE_APPLICATION_CREDENTIALS')) {
             errorMessage = 'Vision API לא מוגדר';
             errorDetails = 'נדרש להגדיר את GOOGLE_APPLICATION_CREDENTIALS במשתני הסביבה';
@@ -129,7 +129,7 @@ export const scanReceiptImage = async (req, res) => {
             errorMessage = 'פסק זמן בסריקה';
             errorDetails = 'הסריקה לקחה יותר מדי זמן. נסה שוב עם תמונה קטנה יותר';
         }
-        
+
         res.status(500).json({
             error: errorMessage,
             details: errorDetails,
