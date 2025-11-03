@@ -135,11 +135,14 @@ export function extractTotal(text) {
         'סה\"כ'
     ];
 
-    // מילות מפתח לסכום ששולם
+    // מילות מפתח לסכום ששולם - הוסף patterns מפורשים יותר
     const paidKeywords = [
         'שולם', 'מזומן', 'אשראי', 'כרטיס', 'שילם',
         'paid', 'cash', 'credit', 'card', 'שולם ב'
     ];
+    
+    // Pattern ספציפי לזיהוי "שולם: 64.20" או "שולם 64.20"
+    const paidPattern = /שולם\s*[:]?\s*([0-9,]+\.?\d{0,2})/i;
 
     // מילות מפתח לעודף
     const changeKeywords = ['עודף', 'החזר', 'change', 'refund'];
@@ -175,14 +178,47 @@ export function extractTotal(text) {
             }
         }
 
-        // זיהוי סכום ששולם
+        // זיהוי סכום ששולם - עדיפות גבוהה מאוד!
+        // קודם כל, נסה pattern מפורש "שולם: 64.20"
+        const paidMatch = lines[i].match(paidPattern);
+        if (paidMatch) {
+            const paidAmount = parseFloat(paidMatch[1].replace(/,/g, ''));
+            if (!isNaN(paidAmount) && paidAmount > 0 && paidAmount < 10000) {
+                paidMax = paidMax == null ? paidAmount : Math.max(paidMax, paidAmount);
+                console.log(`💳 סכום ששולם זוהה מפורש: ₪${paidAmount}`);
+            }
+        }
+        
+        // אחרת, נסה זיהוי רגיל לפי מילות מפתח
         if (paidKeywords.some((k) => line.includes(k))) {
             // סנן רק סכומים סבירים
             const validAmounts = amountsHere.filter(amt => isLikelyAmount(amt, lines[i]));
+            
             if (validAmounts.length > 0) {
-                const localMax = Math.max(...validAmounts);
-                paidMax = paidMax == null ? localMax : Math.max(paidMax, localMax);
-                console.log(`💳 סכום ששולם זוהה: ₪${localMax}`);
+                // עדיפות לסכום עם נקודה עשרונית
+                const withDecimal = validAmounts.filter(amt => {
+                    const amtStr = amt.toString();
+                    return amtStr.includes('.') && amtStr.split('.')[1]?.length === 2;
+                });
+                
+                const finalAmounts = withDecimal.length > 0 ? withDecimal : validAmounts;
+                
+                // אם יש "שולם:" או "שולם" מפורש, קח את הסכום הראשון/האחרון (תלוי במיקום)
+                // בדרך כלל הסכום מופיע מיד אחרי המילה "שולם"
+                let selectedAmount;
+                if (line.includes('שולם:') || line.includes('שולם')) {
+                    // קח את הסכום האחרון בשורה (בדרך כלל הסכום הוא בצד ימין)
+                    selectedAmount = finalAmounts[finalAmounts.length - 1];
+                } else {
+                    // קח את המקסימלי
+                    selectedAmount = Math.max(...finalAmounts);
+                }
+                
+                // עדכן רק אם הסכום הגיוני (קטן מ-10,000 בדרך כלל)
+                if (selectedAmount < 10000 || (paidMax == null && selectedAmount < 50000)) {
+                    paidMax = paidMax == null ? selectedAmount : Math.max(paidMax, selectedAmount);
+                    console.log(`💳 סכום ששולם זוהה: ₪${selectedAmount}`);
+                }
             }
         }
 
@@ -199,25 +235,20 @@ export function extractTotal(text) {
     }
 
     // לוגיקה לקביעת הסכום הסופי
+    // עדיפות ראשונה: סכום ששולם (שולם: 64.20) - זהו הסכום המדויק ביותר
+    if (paidMax != null) {
+        console.log(`✅ משתמש בסכום ששולם: ₪${paidMax}`);
+        return round2(paidMax);
+    }
+    
+    // עדיפות שנייה: סכום כולל מפורש (סה"כ לתשלום)
     if (candidateTotal != null) {
-        // אם יש סכום לתשלום מפורש
-        if (paidMax != null && candidateTotal > paidMax) {
-            // OCR כנראה טעה - קח את המינימום
-            const correctedTotal = Math.min(candidateTotal, paidMax);
-            console.log(`🔧 תיקון סכום: ₪${candidateTotal} → ₪${correctedTotal}`);
-            return round2(correctedTotal);
-        }
+        console.log(`✅ משתמש בסכום כולל מזוהה: ₪${candidateTotal}`);
         return round2(candidateTotal);
     }
 
-    // אם אין total מפורש אבל יש שולם ועודף
-    if (paidMax != null && changeAmt != null) {
-        const computed = paidMax - changeAmt;
-        if (computed > 0) {
-            console.log(`🧮 חישוב סכום: ₪${paidMax} - ₪${changeAmt} = ₪${computed}`);
-            return round2(computed);
-        }
-    }
+    // עדיפות שלישית: חישוב לפי שולם ועודף (אם paidMax לא נמצא מעל)
+    // (זה כבר מטופל למעלה אם paidMax קיים)
 
     // fallback: קח את הסכום הגבוה ביותר שקטן או שווה לסכום ששולם
     // חשוב: סנן מספרים שנראים כמו מספרי עסק/כרטיס
@@ -250,36 +281,62 @@ export function extractTotal(text) {
             }
         }
 
-        // אם אין סכום ששולם, עדיפות לסכומים עם נקודה עשרונית וקטנים מ-10,000
+        // אם אין סכום ששולם, עדיפות לסכומים עם נקודה עשרונית וקטנים מ-500
+        // (רוב הקבלות הן פחות מ-500 ש"ח)
         const reasonableAmounts = allAmounts.filter(n => {
-            const lineIndex = lines.findIndex(line =>
+            const lineIndex = lines.findIndex(line => 
                 parseAmounts(line).includes(n)
             );
             if (lineIndex === -1) return false;
             const line = lines[lineIndex];
             // עדיפות לסכומים עם נקודה עשרונית
             const hasDecimal = line.includes('.') && /\d+\.\d{2}/.test(line);
-            // וקטנים מ-10,000 (יותר סבירים לקבלות)
-            return hasDecimal && n < 10000;
+            // וקטנים מ-500 (יותר סבירים לקבלות יומיומיות)
+            return hasDecimal && n < 500;
         });
-
+        
         if (reasonableAmounts.length > 0) {
             const maxAmount = Math.max(...reasonableAmounts);
             console.log(`📊 סכום מקסימלי סביר: ₪${maxAmount}`);
             return round2(maxAmount);
         }
-
-        // אם אין סכומים עם נקודה עשרונית, קח את המקסימלי הקטן מ-10,000
-        const smallAmounts = allAmounts.filter(n => n < 10000);
+        
+        // אם אין סכומים עם נקודה עשרונית קטנים מ-500, חפש עד 1000
+        const mediumAmounts = allAmounts.filter(n => {
+            const lineIndex = lines.findIndex(line => 
+                parseAmounts(line).includes(n)
+            );
+            if (lineIndex === -1) return false;
+            const line = lines[lineIndex];
+            const hasDecimal = line.includes('.') && /\d+\.\d{2}/.test(line);
+            return hasDecimal && n < 1000;
+        });
+        
+        if (mediumAmounts.length > 0) {
+            const maxAmount = Math.max(...mediumAmounts);
+            console.log(`📊 סכום מקסימלי בינוני: ₪${maxAmount}`);
+            return round2(maxAmount);
+        }
+        
+        // אם אין סכומים עם נקודה עשרונית, קח את המקסימלי הקטן מ-1000
+        const smallAmounts = allAmounts.filter(n => n < 1000);
         if (smallAmounts.length > 0) {
             const maxAmount = Math.max(...smallAmounts);
             console.log(`📊 סכום מקסימלי קטן: ₪${maxAmount}`);
             return round2(maxAmount);
         }
-
-        // רק אם אין שום דבר אחר, קח את המקסימלי הכללי
+        
+        // רק אם אין שום דבר אחר, קח את המקסימלי הקטן מ-5000
+        const fallbackAmounts = allAmounts.filter(n => n < 5000);
+        if (fallbackAmounts.length > 0) {
+            const maxAmount = Math.max(...fallbackAmounts);
+            console.log(`📊 סכום מקסימלי fallback: ₪${maxAmount}`);
+            return round2(maxAmount);
+        }
+        
+        // רק באמת אחרון, קח את המקסימלי הכללי
         const maxAmount = Math.max(...allAmounts);
-        console.log(`📊 סכום מקסימלי כללי: ₪${maxAmount}`);
+        console.log(`⚠️ סכום מקסימלי כללי (אחרון): ₪${maxAmount}`);
         return round2(maxAmount);
     }
 
