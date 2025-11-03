@@ -8,10 +8,10 @@ export const getMaasrot = async (req, res) => {
     try {
         const household = req.user.household;
         const userId = req.user._id;
-        
+
         // Get month and year from query params (optional)
         const { month, year } = req.query;
-        
+
         // Calculate monthly income from transactions for specified month
         let targetMonth;
         if (month && year) {
@@ -38,19 +38,19 @@ export const getMaasrot = async (req, res) => {
 
         // Get or create maasrot record (but don't update it if month is specified)
         const maasrot = await Maasrot.getOrCreate(household, userId, monthlyIncome);
-        
+
         // Filter donations by month if month/year specified
         let filteredDonations = maasrot.donations;
         if (month && year) {
             const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
             const endOfMonth = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
-            
+
             filteredDonations = maasrot.donations.filter(donation => {
                 const donationDate = new Date(donation.date);
                 return donationDate >= startOfMonth && donationDate <= endOfMonth;
             });
         }
-        
+
         // Calculate totals for filtered donations
         const totalDonatedForMonth = filteredDonations.reduce((sum, donation) => sum + donation.amount, 0);
         const maasrotTargetForMonth = Math.round(monthlyIncome * 0.1); // 10% of monthly income

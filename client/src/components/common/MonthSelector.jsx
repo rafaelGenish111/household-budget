@@ -15,7 +15,7 @@ import { he } from 'date-fns/locale';
 
 const MonthSelector = ({ value, onChange, label = 'חודש' }) => {
     const [selectedMonth, setSelectedMonth] = useState(value || new Date());
-    
+
     // Sync with external value prop
     useEffect(() => {
         if (value) {

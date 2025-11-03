@@ -131,7 +131,7 @@ const Maasrot = () => {
                         הוסף תרומה
                     </Button>
                 </Box>
-                
+
                 {/* Month Selector */}
                 <Paper sx={{ p: 2, mb: 4 }}>
                     <MonthSelector

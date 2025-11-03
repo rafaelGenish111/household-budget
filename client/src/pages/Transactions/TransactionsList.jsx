@@ -46,7 +46,7 @@ const TransactionsList = () => {
     const [editTransaction, setEditTransaction] = useState(null);
     const [dialogDefaultType, setDialogDefaultType] = useState('expense');
     const [selectedMonth, setSelectedMonth] = useState(new Date());
-    
+
     // Initialize filters with current month dates
     const getMonthDates = (date) => {
         const start = startOfMonth(date);
@@ -56,7 +56,7 @@ const TransactionsList = () => {
             endDate: end.toISOString(),
         };
     };
-    
+
     const [filters, setFilters] = useState({
         type: searchParams.get('type') || 'expense', // Default to expenses
         category: '',
@@ -73,7 +73,7 @@ const TransactionsList = () => {
     useEffect(() => {
         dispatch(fetchTransactions(filters));
     }, [dispatch, filters]);
-    
+
     // Update filters when month changes
     useEffect(() => {
         const monthDates = getMonthDates(selectedMonth);
@@ -180,7 +180,7 @@ const TransactionsList = () => {
                     </Button>
                 </Box>
             </Box>
-            
+
             {/* Month Selector */}
             <Paper sx={{ p: 2, mb: 3 }}>
                 <MonthSelector
